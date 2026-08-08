@@ -187,12 +187,15 @@ const bookerId = await upsertAgent("Dial Booker", {
 console.log(`
 Paste into .env.local:
 
-NEXT_PUBLIC_ELEVENLABS_CONCIERGE_AGENT_ID=${conciergeId}
-ELEVENLABS_BOOKER_AGENT_ID=${bookerId}
+NEXT_PUBLIC_ELEVENLABS_CONCIERGE_AGENT_ID=${conciergeId}   # the canvas at /
+ELEVENLABS_BOOKER_AGENT_ID=${bookerId}   # answered at /phone
 
-Still manual (they cost money or need a human):
-  APIFY_TOKEN                       apify.com -> Settings -> API token
-  ELEVENLABS_AGENT_PHONE_NUMBER_ID  buy a Twilio number, import it under
-                                    ElevenLabs -> Phone numbers, attach Dial Booker
-  DEMO_BOOKING_NUMBERS              the number the Booker is allowed to dial
+The third agent, NEXT_PUBLIC_ELEVENLABS_AGENT_ID, is the Dial receptionist that
+answers as a business at /console. It predates this script and is not touched by
+it — the canvas works without it.
+
+No phone number is needed. The Booker is answered in the browser at /phone.
+
+Still manual, because it costs money:
+  APIFY_TOKEN   apify.com -> Settings -> API token
 `);
