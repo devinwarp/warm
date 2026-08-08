@@ -34,6 +34,10 @@ function index(args: Record<string, unknown>, key: string): number {
   return Number.isInteger(value) && value >= 0 ? value : -1;
 }
 
+// The booking call is the demo's closing shot — poll fast enough that the
+// transcript reads as live, slow enough not to hammer the API.
+const CALL_POLL_MS = 2000;
+
 function id(): string {
   return crypto.randomUUID();
 }
@@ -165,6 +169,67 @@ function CanvasInner({ agentId }: { agentId: string }) {
     } catch (error) {
       fault(error instanceof Error ? error.message : "the search failed");
       return "the search failed — tell them and offer to try a different area";
+    }
+  });
+
+  useConversationClientTool("book_table", async (args) => {
+    const pick = index(args, "index");
+    const grid = latest("restaurants");
+    const place = grid?.places[pick];
+    if (!grid || !place) return "that wasn't one of the options — ask which one they meant";
+    if (!place.phone) return `${place.name} didn't publish a phone number — offer another one`;
+
+    const partySize = Number(args.party_size);
+    const when = text(args, "when");
+    const customerName = text(args, "customer_name");
+    const customerPhone = text(args, "customer_phone");
+    if (!Number.isInteger(partySize) || !when || !customerName || !customerPhone) {
+      return "still missing something — ask for the party size, the time, their name, and their number";
+    }
+
+    dispatch({ type: "choose", id: grid.id, index: pick });
+
+    const cardId = id();
+    try {
+      const { conversation_id } = await post<{ conversation_id: string }>("/api/book", {
+        restaurant_name: place.name,
+        to_number: place.phone,
+        party_size: partySize,
+        when,
+        customer_name: customerName,
+        customer_phone: customerPhone,
+      });
+
+      dispatch({
+        type: "add",
+        card: {
+          id: cardId,
+          kind: "call",
+          restaurant: place.name,
+          conversationId: conversation_id,
+          status: "ringing",
+          transcript: [],
+        },
+      });
+
+      const poll = setInterval(async () => {
+        try {
+          const response = await fetch(`/api/book?id=${conversation_id}`);
+          const state = (await response.json()) as {
+            status: string;
+            transcript: { role: string; message: string }[];
+          };
+          dispatch({ type: "call", id: cardId, status: state.status, transcript: state.transcript });
+          if (state.status === "done" || state.status === "failed") clearInterval(poll);
+        } catch {
+          // A missed poll only delays the transcript; the next one catches up.
+        }
+      }, CALL_POLL_MS);
+
+      return `calling ${place.name} now — tell them it's ringing and stay quiet until it's done`;
+    } catch (error) {
+      fault(error instanceof Error ? error.message : "the call failed");
+      return "couldn't get the call out — tell them plainly and offer to try again";
     }
   });
 

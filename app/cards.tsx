@@ -119,6 +119,39 @@ export function CardView({
       );
     }
 
+    case "call":
+      return (
+        <Shell label={`Calling ${card.restaurant}`}>
+          <p className="font-mono text-xs tracking-widest text-mute uppercase">
+            <span
+              className={`mr-2 inline-block size-2 rounded-full align-middle ${
+                card.status === "done"
+                  ? "bg-lamp"
+                  : card.status === "failed"
+                    ? "bg-fault"
+                    : "lamp-live bg-lamp"
+              }`}
+              aria-hidden
+            />
+            {card.status}
+          </p>
+          {card.transcript.length === 0 ? (
+            <p className="text-sm text-mute">ringing…</p>
+          ) : (
+            <ul className="flex flex-col gap-2">
+              {card.transcript.map((turn, i) => (
+                <li key={i} className="text-sm">
+                  <span className="font-mono text-[11px] tracking-widest text-mute uppercase">
+                    {turn.role === "agent" ? "us" : "them"}
+                  </span>
+                  <p>{turn.message}</p>
+                </li>
+              ))}
+            </ul>
+          )}
+        </Shell>
+      );
+
     case "fault":
       return (
         <Shell label="That didn't work">

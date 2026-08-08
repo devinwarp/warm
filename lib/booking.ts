@@ -39,8 +39,17 @@ function allowlist(): string[] {
 }
 
 export function validateBooking(input: unknown): BookingRequest {
-  const booking = BookingSchema.parse(input);
+  const parsed = BookingSchema.safeParse(input);
+  if (!parsed.success) {
+    // The message reaches a fault card on screen, so it has to read like a
+    // sentence — zod's raw issue JSON does not.
+    const issue = parsed.error.issues[0];
+    throw new Error(
+      issue ? `${issue.path.join(".") || "booking"}: ${issue.message}` : "invalid booking",
+    );
+  }
 
+  const booking = parsed.data;
   if (!allowlist().includes(booking.to_number)) {
     throw new Error(`${booking.to_number} is not an approved demo number`);
   }
