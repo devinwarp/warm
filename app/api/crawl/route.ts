@@ -49,6 +49,10 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: message }, { status: 502 });
   }
 
-  await cacheFactSheet(url, sheet);
+  // The cache only exists so re-demos are instant (PRD §8). A write failure
+  // (table missing, venue wifi) must not take down a crawl that succeeded.
+  await cacheFactSheet(url, sheet).catch((error: unknown) => {
+    console.warn(`factsheet cache write skipped: ${error instanceof Error ? error.message : error}`);
+  });
   return NextResponse.json(sheet);
 }
