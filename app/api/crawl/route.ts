@@ -6,9 +6,13 @@ import { cacheFactSheet, getCachedFactSheet } from "@/lib/supabase";
  * POST /api/crawl  { url }  ->  FactSheet
  *
  * Owner: Lijeesh (Data).
- * Frontend and Voice build against this shape from T+20 — the body below is
- * the only part still missing.
+ * Frontend and Voice build against this shape from T+20.
  */
+
+// A multi-page Context.dev crawl plus the extraction pass runs tens of seconds.
+// Vercel's default function timeout is far shorter and would kill it mid-crawl.
+export const maxDuration = 60;
+
 export async function POST(request: Request) {
   const body = (await request.json().catch(() => null)) as { url?: unknown } | null;
 
