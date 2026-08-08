@@ -9,6 +9,7 @@ import type { Place } from "./places";
 // and a missing key should fail the request that needed it, not the deploy.
 type Row = { url: string; data: FactSheet; crawled_at: string };
 type PlacesRow = { key: string; data: Place[]; fetched_at: string };
+type DemoStatusRow = { slug: string; preset: string; updated_at: string };
 
 /** Mirrors supabase/migrations/0001_factsheets.sql. One table, hand-written. */
 type Database = {
@@ -24,6 +25,12 @@ type Database = {
         Row: PlacesRow;
         Insert: Omit<PlacesRow, "fetched_at"> & { fetched_at?: string };
         Update: Partial<PlacesRow>;
+        Relationships: [];
+      };
+      demo_status: {
+        Row: DemoStatusRow;
+        Insert: Omit<DemoStatusRow, "updated_at"> & { updated_at?: string };
+        Update: Partial<DemoStatusRow>;
         Relationships: [];
       };
     };
@@ -80,4 +87,25 @@ export async function getCachedPlaces(key: string): Promise<Place[] | null> {
 export async function cachePlaces(key: string, places: Place[]): Promise<void> {
   const { error } = await db().from("places").upsert({ key, data: places });
   if (error) throw new Error(`places cache write failed: ${error.message}`);
+}
+
+/**
+ * Which preset a demo site is currently showing, or null if never flipped.
+ * Never throws: a demo page that can't reach Supabase must still render its
+ * fallback rather than 500 in front of the room.
+ */
+export async function getDemoPreset(slug: string): Promise<string | null> {
+  try {
+    const { data } = await db().from("demo_status").select("preset").eq("slug", slug).maybeSingle();
+    return data?.preset ?? null;
+  } catch {
+    return null;
+  }
+}
+
+export async function setDemoPreset(slug: string, preset: string): Promise<void> {
+  const { error } = await db()
+    .from("demo_status")
+    .upsert({ slug, preset, updated_at: new Date().toISOString() });
+  if (error) throw new Error(`demo status write failed: ${error.message}`);
 }
