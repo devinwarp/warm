@@ -4,8 +4,10 @@ import { ConversationProvider, useConversation, useConversationClientTool } from
 import { useCallback, useReducer, useRef, useState } from "react";
 import { canvasReducer, type Card } from "@/lib/canvas";
 import { FactSheetSchema } from "@/lib/factsheet";
+import type { LiveRead } from "@/lib/liveread";
 import type { Place } from "@/lib/places";
 import { CardView } from "./cards";
+import { Orb } from "./orb";
 
 /**
  * The voice canvas. The visitor talks; the agent paints cards through client
@@ -16,6 +18,19 @@ import { CardView } from "./cards";
  * nearest ConversationProvider, so the provider has to sit above the component
  * that registers the tools — hence the split at the bottom of this file.
  */
+
+// The booking call is the demo's closing shot — poll fast enough that the
+// transcript reads as live, slow enough not to hammer the API.
+const CALL_POLL_MS = 2000;
+
+/**
+ * A voice interface tells you nothing about what it can do. These are the two
+ * shapes of request the agent handles, said the way you would say them.
+ */
+const OPENERS = [
+  "Tell me about Ruwaya Hair Studio",
+  "Find Lebanese food in Jumeirah Lake Towers",
+];
 
 /**
  * Tool arguments arrive as an untyped bag: a language model produced them from
@@ -34,10 +49,6 @@ function index(args: Record<string, unknown>, key: string): number {
   return Number.isInteger(value) && value >= 0 ? value : -1;
 }
 
-// The booking call is the demo's closing shot — poll fast enough that the
-// transcript reads as live, slow enough not to hammer the API.
-const CALL_POLL_MS = 2000;
-
 function id(): string {
   return crypto.randomUUID();
 }
@@ -55,16 +66,33 @@ async function post<T>(path: string, body: unknown): Promise<T> {
 
 function CanvasInner({ agentId }: { agentId: string }) {
   const [live, setLive] = useState(false);
+  const [starting, setStarting] = useState(false);
   const [cards, dispatch] = useReducer(canvasReducer, [] as Card[]);
 
   // Tools need to read the latest cards without re-registering on every paint.
   const cardsRef = useRef<Card[]>([]);
   cardsRef.current = cards;
 
+  // An opener tapped before the line is up, sent the moment it connects.
+  const opener = useRef<string | null>(null);
+  const send = useRef<((text: string) => void) | null>(null);
+
   const conversation = useConversation({
-    onConnect: () => setLive(true),
-    onDisconnect: () => setLive(false),
+    onConnect: () => {
+      setLive(true);
+      setStarting(false);
+      if (opener.current) {
+        send.current?.(opener.current);
+        opener.current = null;
+      }
+    },
+    onDisconnect: () => {
+      setLive(false);
+      setStarting(false);
+    },
+    onError: () => setStarting(false),
   });
+  send.current = conversation.sendUserMessage;
 
   const fault = useCallback((text: string) => {
     dispatch({ type: "add", card: { id: id(), kind: "fault", text } });
@@ -172,12 +200,55 @@ function CanvasInner({ agentId }: { agentId: string }) {
     }
   });
 
+  /**
+   * The place the conversation is currently about: whatever the visitor last
+   * picked, from either grid. The agent can override with an index.
+   */
+  const inFocus = useCallback(
+    (override: number) => {
+      for (let i = cardsRef.current.length - 1; i >= 0; i--) {
+        const card = cardsRef.current[i];
+        if (card?.kind !== "restaurants" && card?.kind !== "candidates") continue;
+        const pick = override >= 0 ? override : (card.chosen ?? 0);
+        return card.places[pick] ?? null;
+      }
+      return null;
+    },
+    [],
+  );
+
+  useConversationClientTool("check_live", async (args) => {
+    const place = inFocus(index(args, "index"));
+    if (!place) return "nothing is on screen yet — search for somewhere first";
+    if (!place.google_url) return `no listing to read for ${place.name} — say so`;
+
+    try {
+      const read = await post<LiveRead>("/api/liveread", {
+        name: place.name,
+        google_url: place.google_url,
+      });
+
+      dispatch({
+        type: "add",
+        card: { id: id(), kind: "liveread", read, reviews: place.reviews, tags: place.review_tags },
+      });
+
+      // Say the freshness out loud — a rating without a timestamp is just a
+      // number the agent could have made up.
+      return `just read ${place.name}'s listing: rated ${read.rating ?? "unrated"}${
+        place.reviews ? ` from ${place.reviews} reviews` : ""
+      }${read.open_now ? `, and it says ${read.open_now}` : ""}. Say that you checked it just now.`;
+    } catch (error) {
+      fault(error instanceof Error ? error.message : "the live read failed");
+      return "couldn't read their listing just now — say so and offer what you already know";
+    }
+  });
+
   useConversationClientTool("book_table", async (args) => {
     const pick = index(args, "index");
     const grid = latest("restaurants");
     const place = grid?.places[pick];
     if (!grid || !place) return "that wasn't one of the options — ask which one they meant";
-    if (!place.phone) return `${place.name} didn't publish a phone number — offer another one`;
 
     const partySize = Number(args.party_size);
     const when = text(args, "when");
@@ -191,9 +262,10 @@ function CanvasInner({ agentId }: { agentId: string }) {
 
     const cardId = id();
     try {
-      const { conversation_id } = await post<{ conversation_id: string }>("/api/book", {
+      // No Twilio on this path: /api/ring makes the phone at /phone ring, and a
+      // human answers as the restaurant. lib/ring.ts explains why.
+      const { call_id } = await post<{ call_id: string }>("/api/ring", {
         restaurant_name: place.name,
-        to_number: place.phone,
         party_size: partySize,
         when,
         customer_name: customerName,
@@ -206,7 +278,7 @@ function CanvasInner({ agentId }: { agentId: string }) {
           id: cardId,
           kind: "call",
           restaurant: place.name,
-          conversationId: conversation_id,
+          conversationId: call_id,
           status: "ringing",
           transcript: [],
         },
@@ -214,7 +286,7 @@ function CanvasInner({ agentId }: { agentId: string }) {
 
       const poll = setInterval(async () => {
         try {
-          const response = await fetch(`/api/book?id=${conversation_id}`);
+          const response = await fetch(`/api/ring?id=${call_id}`);
           const state = (await response.json()) as {
             status: string;
             transcript: { role: string; message: string }[];
@@ -250,43 +322,168 @@ function CanvasInner({ agentId }: { agentId: string }) {
     [conversation],
   );
 
-  const start = useCallback(async () => {
-    await navigator.mediaDevices.getUserMedia({ audio: true });
-    conversation.startSession({ agentId, connectionType: "webrtc" });
-  }, [agentId, conversation]);
+  const start = useCallback(
+    async (seed?: string) => {
+      if (live || starting) {
+        if (seed) conversation.sendUserMessage(seed);
+        return;
+      }
+      opener.current = seed ?? null;
+      setStarting(true);
+      try {
+        await navigator.mediaDevices.getUserMedia({ audio: true });
+        conversation.startSession({ agentId, connectionType: "webrtc" });
+      } catch {
+        setStarting(false);
+        fault("The microphone was blocked. Allow it in your browser and try again.");
+      }
+    },
+    [agentId, conversation, fault, live, starting],
+  );
+
+  const open = live || cards.length > 0;
+  const speaking = conversation.isSpeaking;
 
   return (
-    <main className="mx-auto flex min-h-dvh w-full max-w-3xl flex-col gap-10 px-6 py-14">
-      <header className="flex items-baseline justify-between">
-        <h1 className="font-display text-4xl font-semibold tracking-tight">Dial</h1>
-        <div className="flex items-center gap-2 font-mono text-xs tracking-widest text-mute uppercase">
-          <span className={`size-2 rounded-full ${live ? "lamp-live bg-lamp" : "bg-line"}`} aria-hidden />
-          {live ? "listening" : "line idle"}
-        </div>
-      </header>
-
-      {!live && cards.length === 0 && (
-        <section className="flex flex-col gap-4">
-          <p className="max-w-md text-mute">
-            Tell it a business you want to know about, or a table you want booked.
-            It will find it, read it, and call them for you.
-          </p>
-          <button
-            type="button"
-            onClick={start}
-            className="self-start rounded-md bg-lamp px-5 py-3 text-sm font-semibold text-ink transition-opacity hover:opacity-90"
-          >
-            Start talking
-          </button>
-        </section>
-      )}
-
-      <div className="flex flex-col gap-6">
-        {cards.map((card) => (
-          <CardView key={card.id} card={card} onChoose={onChoose} />
-        ))}
+    <>
+      <div className="aurora" aria-hidden>
+        <span className="aurora-1" />
+        <span className="aurora-2" />
+        <span className="aurora-3" />
       </div>
-    </main>
+
+      <main
+        className={`mx-auto flex min-h-dvh w-full max-w-3xl flex-col gap-8 px-6 py-10 ${
+          open ? "pb-40" : "pb-10"
+        }`}
+      >
+        <header className="flex items-baseline justify-between">
+          <h1 className="font-display text-3xl font-semibold tracking-tight">Dial</h1>
+          <div className="flex items-center gap-2 font-mono text-xs tracking-widest text-mute uppercase">
+            <span
+              className={`size-2 rounded-full transition-colors ${
+                starting
+                  ? "lamp-live bg-mute"
+                  : speaking
+                    ? "bg-lamp"
+                    : live
+                      ? "lamp-live bg-signal"
+                      : "bg-line"
+              }`}
+              aria-hidden
+            />
+            {starting ? "opening the line" : speaking ? "speaking" : live ? "listening" : "line idle"}
+          </div>
+        </header>
+
+        {!open && (
+          <section className="flex flex-1 flex-col items-center justify-center gap-7 text-center">
+            <Orb
+              live={live}
+              speaking={speaking}
+              docked={false}
+              getInputVolume={conversation.getInputVolume}
+              getOutputVolume={conversation.getOutputVolume}
+            />
+
+            <div className="flex flex-col gap-3">
+              <h2 className="font-display text-4xl leading-tight font-semibold sm:text-5xl">
+                Say the name.
+                <br />
+                It makes the call.
+              </h2>
+              <p className="mx-auto max-w-md text-balance text-mute">
+                Dial finds the business, reads their website, and phones them for
+                you — in whatever language you speak.
+              </p>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => start()}
+              disabled={starting}
+              className="rounded-full bg-lamp px-7 py-3.5 text-sm font-semibold text-ink transition-all hover:scale-[1.03] focus-visible:ring-2 focus-visible:ring-lamp focus-visible:ring-offset-2 focus-visible:ring-offset-ink focus-visible:outline-none disabled:opacity-50"
+            >
+              {starting ? "Opening the line…" : "Start talking"}
+            </button>
+
+            <div className="flex flex-col items-center gap-2">
+              <p className="font-mono text-[11px] tracking-widest text-mute/70 uppercase">or try</p>
+              <div className="flex flex-wrap justify-center gap-2">
+                {OPENERS.map((line) => (
+                  <button
+                    key={line}
+                    type="button"
+                    onClick={() => start(line)}
+                    disabled={starting}
+                    className="rounded-full border border-line bg-panel/60 px-4 py-2 text-xs text-mute transition-colors hover:border-signal/60 hover:text-fg focus-visible:border-signal focus-visible:outline-none disabled:opacity-50"
+                  >
+                    “{line}”
+                  </button>
+                ))}
+              </div>
+            </div>
+          </section>
+        )}
+
+        {open && cards.length === 0 && (
+          <section className="flex flex-1 flex-col items-center justify-center gap-3 text-center">
+            <p className="font-display text-2xl">The line is open.</p>
+            <p className="max-w-xs text-balance text-mute">
+              Say who you’re looking for, or what you want booked.
+            </p>
+          </section>
+        )}
+
+        {cards.length > 0 && (
+          <div className="flex flex-col gap-6">
+            {cards.map((card) => (
+              <div key={card.id} className="card-in">
+                <CardView card={card} onChoose={onChoose} />
+              </div>
+            ))}
+          </div>
+        )}
+      </main>
+
+      {/* The orb stays on screen for the whole conversation — it is the agent,
+          and it is the only thing that tells you it heard you. */}
+      {open && (
+        <div className="fixed inset-x-0 bottom-0 z-10 flex justify-center bg-gradient-to-t from-ink via-ink/90 to-transparent pt-10 pb-6">
+          <div className="flex items-center gap-4 rounded-full border border-line bg-panel/80 py-2 pr-5 pl-2 backdrop-blur">
+            <Orb
+              live={live}
+              speaking={speaking}
+              docked
+              getInputVolume={conversation.getInputVolume}
+              getOutputVolume={conversation.getOutputVolume}
+            />
+            <div className="flex flex-col gap-0.5 text-left">
+              <span className="font-mono text-[11px] tracking-widest text-mute uppercase">
+                {speaking ? "speaking" : live ? "listening" : "line closed"}
+              </span>
+              {live ? (
+                <button
+                  type="button"
+                  onClick={() => conversation.endSession()}
+                  className="text-left text-xs text-mute underline decoration-line underline-offset-4 transition-colors hover:text-fault"
+                >
+                  Hang up
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => start()}
+                  className="text-left text-xs text-lamp underline decoration-lamp/40 underline-offset-4"
+                >
+                  Call again
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+    </>
   );
 }
 

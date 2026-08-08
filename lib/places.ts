@@ -12,6 +12,14 @@ export type Place = {
   categories: string[];
   lat: number;
   lng: number;
+  /**
+   * The place's Google Maps page. This is the only source that carries live
+   * ratings and review text, so it is what the live-read tool points
+   * Context.dev at — a business's own site never says what people think of it.
+   */
+  google_url: string | null;
+  /** Google's own aggregated review keywords — "what reviewers keep saying". */
+  review_tags: string[];
 };
 
 /**
@@ -59,6 +67,13 @@ export function normalizePlace(item: unknown): Place | null {
     categories: listed.length > 0 ? listed : fallback ? [fallback] : [],
     lat: num(location.lat) ?? 0,
     lng: num(location.lng) ?? 0,
+    google_url: str(raw.url) ?? str(raw.searchPageUrl),
+    review_tags: Array.isArray(raw.reviewsTags)
+      ? raw.reviewsTags
+          .map((tag) => (typeof tag === "object" && tag !== null ? (tag as { title?: unknown }).title : tag))
+          .filter((title): title is string => typeof title === "string")
+          .slice(0, 8)
+      : [],
   };
 }
 

@@ -36,7 +36,19 @@ describe("normalizePlace", () => {
       categories: ["Lebanese restaurant", "Middle Eastern restaurant"],
       lat: 25.0693,
       lng: 55.1412,
+      google_url: "https://www.google.com/maps/search/?api=1&query=Qamar%20Table&query_place_id=ChIJtest1",
+      review_tags: ["mezze", "service"],
     });
+  });
+
+  it("falls back to the search page url when a place has no direct url", () => {
+    expect(normalizePlace(fixture[1])?.google_url).toBe(
+      "https://www.google.com/maps/search/Al%20Nafoorah",
+    );
+  });
+
+  it("keeps review tags empty rather than inventing them", () => {
+    expect(normalizePlace(fixture[1])?.review_tags).toEqual([]);
   });
 
   it("keeps unpublished fields null rather than inventing them", () => {

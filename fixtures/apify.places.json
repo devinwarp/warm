@@ -7,8 +7,25 @@
     "totalScore": 4.6,
     "reviewsCount": 812,
     "categoryName": "Lebanese restaurant",
-    "categories": ["Lebanese restaurant", "Middle Eastern restaurant"],
-    "location": { "lat": 25.0693, "lng": 55.1412 }
+    "categories": [
+      "Lebanese restaurant",
+      "Middle Eastern restaurant"
+    ],
+    "location": {
+      "lat": 25.0693,
+      "lng": 55.1412
+    },
+    "url": "https://www.google.com/maps/search/?api=1&query=Qamar%20Table&query_place_id=ChIJtest1",
+    "reviewsTags": [
+      {
+        "title": "mezze",
+        "count": 120
+      },
+      {
+        "title": "service",
+        "count": 88
+      }
+    ]
   },
   {
     "title": "Al Nafoorah",
@@ -19,6 +36,12 @@
     "reviewsCount": 0,
     "categoryName": "Lebanese restaurant",
     "categories": [],
-    "location": { "lat": 25.2172, "lng": 55.2825 }
+    "location": {
+      "lat": 25.2172,
+      "lng": 55.2825
+    },
+    "url": null,
+    "searchPageUrl": "https://www.google.com/maps/search/Al%20Nafoorah",
+    "reviewsTags": []
   }
 ]

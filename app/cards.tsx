@@ -37,7 +37,7 @@ function PlaceRow({
       onClick={onClick}
       aria-pressed={selected}
       className={`flex flex-col items-start gap-1 rounded-md border p-4 text-left transition-colors ${
-        selected ? "border-lamp bg-lamp/5" : "border-line hover:border-lamp/60"
+        selected ? "border-signal bg-signal/5" : "border-line hover:border-signal/60"
       }`}
     >
       <span className="text-sm font-medium">{place.name}</span>
@@ -102,7 +102,7 @@ export function CardView({
           <iframe
             title={`Map of ${card.area}`}
             src={`https://www.openstreetmap.org/export/embed.html?bbox=${bbox}&marker=${card.lat}%2C${card.lng}`}
-            className="h-56 w-full rounded-md border border-line"
+            className="map-dark h-56 w-full rounded-md border border-line"
             loading="lazy"
           />
           <button
@@ -110,11 +110,87 @@ export function CardView({
             onClick={() => onChoose(card.id, 0)}
             aria-pressed={card.confirmed}
             className={`self-start rounded-md border px-4 py-2 text-sm transition-colors ${
-              card.confirmed ? "border-lamp bg-lamp/10 text-lamp" : "border-line hover:border-lamp/60"
+              card.confirmed
+                ? "border-signal bg-signal/10 text-signal"
+                : "border-line hover:border-signal/60"
             }`}
           >
             {card.confirmed ? `${card.area} — confirmed` : `Yes, ${card.area}`}
           </button>
+        </Shell>
+      );
+    }
+
+    case "liveread": {
+      const { read } = card;
+      // "Open · Closes 2 AM" is the fact a cached crawl can never be right
+      // about, so it gets the strongest treatment on the card.
+      const openNow = read.open_now?.toLowerCase().startsWith("open");
+      return (
+        <Shell label={`${read.name} — read just now`}>
+          <div className="flex flex-wrap items-center gap-x-6 gap-y-3">
+            {read.rating && (
+              <p className="flex items-baseline gap-1.5">
+                <span className="font-display text-3xl font-semibold text-lamp">{read.rating}</span>
+                <span className="text-sm text-mute">
+                  ★{card.reviews ? ` · ${card.reviews.toLocaleString()} reviews` : ""}
+                </span>
+              </p>
+            )}
+            {read.open_now && (
+              <p
+                className={`flex items-center gap-2 font-mono text-xs tracking-widest uppercase ${
+                  openNow ? "text-signal" : "text-fault"
+                }`}
+              >
+                <span
+                  className={`size-2 rounded-full ${openNow ? "lamp-live bg-signal" : "bg-fault"}`}
+                  aria-hidden
+                />
+                {read.open_now}
+              </p>
+            )}
+          </div>
+
+          {read.summary && <p className="text-sm text-mute">{read.summary}</p>}
+
+          {card.tags.length > 0 && (
+            <div className="flex flex-col gap-2">
+              <h3 className="font-mono text-[11px] tracking-widest text-mute uppercase">
+                What reviewers mention
+              </h3>
+              <ul className="flex flex-wrap gap-2">
+                {card.tags.map((tag) => (
+                  <li
+                    key={tag}
+                    className="rounded-full border border-line bg-ink/40 px-3 py-1 text-xs text-mute"
+                  >
+                    {tag}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {read.highlights.length > 0 && (
+            <ul className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-mute">
+              {read.highlights.map((h) => (
+                <li key={h}>{h}</li>
+              ))}
+            </ul>
+          )}
+
+          <footer className="flex flex-wrap items-center justify-between gap-2 border-t border-line/60 pt-3 font-mono text-[11px] text-mute/70">
+            <span>read {new Date(read.read_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })} · live</span>
+            <a
+              href={read.source_url}
+              target="_blank"
+              rel="noreferrer"
+              className="underline decoration-line underline-offset-2 hover:text-mute"
+            >
+              source
+            </a>
+          </footer>
         </Shell>
       );
     }

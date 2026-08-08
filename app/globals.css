@@ -10,6 +10,12 @@
   --color-lamp: #f3b54a;
   --color-fault: #e5735f;
 
+  /* The two voices. Colour encodes whose turn it is, so the page is readable
+     from across a room with the sound off: amber is the agent talking, teal is
+     the agent listening to you. Violet is depth only — it never means a state. */
+  --color-signal: #4fd6c4;
+  --color-violet: #8b7cf0;
+
   --font-sans: var(--font-plex-sans), system-ui, sans-serif;
   --font-mono: var(--font-plex-mono), ui-monospace, monospace;
   --font-display: var(--font-fraunces), georgia, serif;
@@ -35,8 +41,313 @@ body {
   animation: lamp-pulse 1.6s ease-in-out infinite;
 }
 
+/* ── The orb ──────────────────────────────────────────────────────────────
+   Every layer is driven by one custom property, --amp, set from real audio
+   amplitude in a rAF loop (app/orb.tsx). Nothing here fakes a pulse: when the
+   orb is still, the line is silent. */
+
+.orb {
+  /* Resting glow. The loop overwrites this every frame once a line is open —
+     before that, a wholly collapsed orb reads as broken rather than quiet. */
+  --amp: 0.18;
+  --orb-size: clamp(176px, 40vmin, 252px);
+  /* Listening — the caller's colour. */
+  --tone-a: var(--color-signal);
+  --tone-b: var(--color-violet);
+
+  position: relative;
+  inline-size: var(--orb-size);
+  block-size: var(--orb-size);
+  flex: none;
+  transition:
+    inline-size 0.7s cubic-bezier(0.2, 0.8, 0.2, 1),
+    block-size 0.7s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+/* Speaking — the agent's colour, the same amber as the dial-tone lamp. */
+.orb[data-speaking="true"] {
+  --tone-a: var(--color-lamp);
+  --tone-b: #ef8f5a;
+}
+
+.orb[data-docked="true"] {
+  --orb-size: 76px;
+}
+
+.orb > span {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  display: block;
+}
+
+.orb-bloom {
+  background: radial-gradient(
+    circle at 50% 50%,
+    color-mix(in oklab, var(--tone-a) 72%, transparent),
+    transparent 62%
+  );
+  filter: blur(calc(var(--orb-size) * 0.11));
+  transform: scale(calc(0.84 + var(--amp) * 0.52));
+  opacity: calc(0.4 + var(--amp) * 0.6);
+  transition: background 0.6s linear;
+}
+
+.orb-sheen {
+  background: conic-gradient(
+    from 0deg,
+    transparent,
+    var(--tone-b),
+    transparent 48%,
+    var(--tone-a),
+    transparent
+  );
+  filter: blur(calc(var(--orb-size) * 0.055));
+  opacity: calc(0.18 + var(--amp) * 0.52);
+  animation: orb-spin 9s linear infinite;
+}
+
+.orb-core {
+  background:
+    radial-gradient(
+      circle at 38% 30%,
+      color-mix(in oklab, var(--tone-a) 82%, white 18%),
+      transparent 56%
+    ),
+    radial-gradient(circle at 66% 72%, color-mix(in oklab, var(--tone-b) 80%, transparent), transparent 58%),
+    radial-gradient(circle at 50% 50%, color-mix(in oklab, var(--color-ink) 62%, var(--tone-a)), var(--color-ink) 74%);
+  transform: scale(calc(0.66 + var(--amp) * 0.15));
+  box-shadow: inset 0 0 calc(var(--orb-size) * 0.16) color-mix(in oklab, var(--tone-a) 42%, transparent);
+  transition: background 0.6s linear;
+}
+
+/* The dial ring. Reads as a rotary bezel, and it is the layer that most
+   obviously tracks the voice — it steps outward on every syllable. */
+.orb-ring {
+  border: 1px solid color-mix(in oklab, var(--tone-a) 52%, transparent);
+  transform: scale(calc(0.7 + var(--amp) * 0.32));
+  opacity: calc(0.22 + var(--amp) * 0.78);
+}
+
+.orb-ring-wide {
+  border: 1px solid color-mix(in oklab, var(--tone-a) 26%, transparent);
+  transform: scale(calc(0.82 + var(--amp) * 0.46));
+  opacity: calc(0.12 + var(--amp) * 0.5);
+}
+
+@keyframes orb-spin {
+  to {
+    transform: rotate(1turn);
+  }
+}
+
+/* OpenStreetMap ships light tiles only. Invert-and-rotate is the standard
+   trick for a dark basemap: it keeps roads and labels legible without paying
+   a tile provider for a dark style. */
+.map-dark {
+  filter: invert(0.92) hue-rotate(180deg) saturate(0.55) brightness(1.05) contrast(0.9);
+}
+
+/* ── Ambient aurora ───────────────────────────────────────────────────────
+   Three slow blurred lights behind the landing page. Fixed and inert. */
+
+.aurora {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.aurora span {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(100px);
+  opacity: 0.3;
+}
+
+.aurora-1 {
+  inline-size: 46vmax;
+  block-size: 46vmax;
+  inset-block-start: -12vmax;
+  inset-inline-start: -10vmax;
+  background: var(--color-signal);
+  animation: drift-1 26s ease-in-out infinite alternate;
+}
+
+.aurora-2 {
+  inline-size: 40vmax;
+  block-size: 40vmax;
+  inset-block-end: -14vmax;
+  inset-inline-end: -8vmax;
+  background: var(--color-violet);
+  animation: drift-2 32s ease-in-out infinite alternate;
+}
+
+.aurora-3 {
+  inline-size: 30vmax;
+  block-size: 30vmax;
+  inset-block-start: 34%;
+  inset-inline-end: 22%;
+  background: var(--color-lamp);
+  opacity: 0.14;
+  animation: drift-3 38s ease-in-out infinite alternate;
+}
+
+@keyframes drift-1 {
+  to {
+    transform: translate3d(14vmax, 8vmax, 0) scale(1.18);
+  }
+}
+
+@keyframes drift-2 {
+  to {
+    transform: translate3d(-12vmax, -10vmax, 0) scale(1.12);
+  }
+}
+
+@keyframes drift-3 {
+  to {
+    transform: translate3d(-8vmax, 12vmax, 0) scale(0.86);
+  }
+}
+
+/* Cards arrive as the agent paints them. */
+@keyframes card-in {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 14px, 0);
+  }
+}
+
+.card-in {
+  animation: card-in 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+/* ── The phone at /phone ──────────────────────────────────────────────────
+   A handset on a desk, not a browser page. The bezel is doing real work: it
+   tells the room this is the restaurant's end of the line, not the caller's. */
+
+.phone {
+  position: relative;
+  inline-size: min(390px, 92vw);
+  block-size: min(800px, 86dvh);
+  border-radius: 48px;
+  padding: 11px;
+  background: linear-gradient(158deg, #33414f 0%, #16202b 34%, #0a1017 100%);
+  box-shadow:
+    0 0 0 1px color-mix(in oklab, white 8%, transparent),
+    0 1px 0 color-mix(in oklab, white 16%, transparent) inset,
+    0 50px 90px -28px rgb(0 0 0 / 0.85),
+    0 0 120px -40px color-mix(in oklab, var(--color-signal) 60%, transparent);
+}
+
+/* The ringer lights the bezel. Amber, because that is the agent's colour. */
+.phone[data-ringing="true"] {
+  animation: phone-shiver 2.4s ease-in-out infinite;
+  box-shadow:
+    0 0 0 1px color-mix(in oklab, var(--color-lamp) 30%, transparent),
+    0 1px 0 color-mix(in oklab, white 16%, transparent) inset,
+    0 50px 90px -28px rgb(0 0 0 / 0.85),
+    0 0 140px -30px color-mix(in oklab, var(--color-lamp) 75%, transparent);
+}
+
+.phone-screen {
+  position: relative;
+  block-size: 100%;
+  border-radius: 38px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  background:
+    radial-gradient(120% 80% at 50% -10%, color-mix(in oklab, var(--color-signal) 12%, transparent), transparent 70%),
+    radial-gradient(90% 60% at 50% 110%, color-mix(in oklab, var(--color-violet) 14%, transparent), transparent 70%),
+    var(--color-ink);
+}
+
+/* The orb has to share the screen with a transcript in here. */
+.phone-screen .orb {
+  --orb-size: 148px;
+}
+
+/* Sensor housing. Purely cosmetic, and the whole illusion rests on it. */
+.phone-notch {
+  position: absolute;
+  inset-block-start: 10px;
+  inset-inline: 0;
+  margin-inline: auto;
+  inline-size: 104px;
+  block-size: 22px;
+  border-radius: 999px;
+  background: #05080c;
+  z-index: 2;
+}
+
+@keyframes phone-shiver {
+  0%,
+  88%,
+  100% {
+    transform: rotate(0deg);
+  }
+  91% {
+    transform: rotate(-0.7deg);
+  }
+  95% {
+    transform: rotate(0.7deg);
+  }
+}
+
+/* Rings leaving the caller's avatar, one per ringtone burst. */
+@keyframes halo {
+  from {
+    transform: scale(0.62);
+    opacity: 0.5;
+  }
+  to {
+    transform: scale(2.1);
+    opacity: 0;
+  }
+}
+
+.halo {
+  animation: halo 2.6s cubic-bezier(0.2, 0.6, 0.3, 1) infinite;
+}
+
+.halo-2 {
+  animation-delay: 0.85s;
+}
+
+.halo-3 {
+  animation-delay: 1.7s;
+}
+
+@keyframes bob {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-7px);
+  }
+}
+
+.bob {
+  animation: bob 1.4s ease-in-out infinite;
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .lamp-live {
+  .lamp-live,
+  .orb-sheen,
+  .aurora span,
+  .card-in,
+  .halo,
+  .bob,
+  .phone[data-ringing="true"] {
     animation: none;
+  }
+
+  .orb,
+  .orb > span {
+    transition: none;
   }
 }

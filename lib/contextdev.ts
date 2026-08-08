@@ -66,11 +66,21 @@ export async function crawlSite(
     .filter((page) => page.markdown.trim() !== "");
 }
 
-/** One page → clean markdown. The live tier's read; cheaper than a crawl. */
-export async function scrapeMarkdown(url: string, signal?: AbortSignal): Promise<string> {
+/**
+ * One page → clean markdown. The live tier's read; cheaper than a crawl.
+ *
+ * mainContentOnly defaults on, which is right for a business's own site. Turn
+ * it off for pages whose facts live in the chrome — a Google Maps listing keeps
+ * its rating and its open/closed line outside the main content block.
+ */
+export async function scrapeMarkdown(
+  url: string,
+  signal?: AbortSignal,
+  { mainContentOnly = true }: { mainContentOnly?: boolean } = {},
+): Promise<string> {
   const query = new URLSearchParams({
     url,
-    useMainContentOnly: "true",
+    useMainContentOnly: String(mainContentOnly),
     includeImages: "false",
     // The live tier is answering "is this still true right now" — a day-old
     // cached scrape would defeat the entire point of the endpoint.

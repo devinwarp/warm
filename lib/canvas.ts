@@ -1,4 +1,5 @@
 import type { FactSheet } from "./factsheet";
+import type { LiveRead } from "./liveread";
 import type { Place } from "./places";
 
 /**
@@ -14,6 +15,8 @@ export type Card = { id: string } & (
   | { kind: "factsheet"; sheet: FactSheet }
   | { kind: "area"; area: string; lat: number; lng: number; confirmed: boolean }
   | { kind: "restaurants"; places: Place[]; chosen: number | null }
+  /** rating + open/closed read live from Google; counts/tags from the search. */
+  | { kind: "liveread"; read: LiveRead; reviews: number | null; tags: string[] }
   | {
       kind: "call";
       restaurant: string;

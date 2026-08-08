@@ -86,6 +86,15 @@ const TOOLS = [
     required: ["cuisine", "area"],
   },
   {
+    name: "check_live",
+    description:
+      "Read a place's Google listing right now for its star rating, review count, what reviewers mention, and whether it is open at this moment. Call this whenever the caller asks how good somewhere is, what people say about it, or whether it is open.",
+    properties: {
+      index: int("0-based index of the place to check; omit to use whatever is already selected"),
+    },
+    required: [],
+  },
+  {
     name: "book_table",
     description:
       "Phone the chosen restaurant and book a table. Only call once you have the party size, the time, the caller's name and their phone number.",

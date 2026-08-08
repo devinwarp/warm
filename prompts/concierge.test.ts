@@ -12,7 +12,14 @@ const canvas = readFileSync(new URL("../app/canvas.tsx", import.meta.url), "utf8
 const booker = readFileSync(new URL("./booker-prompt.md", import.meta.url), "utf8");
 const booking = readFileSync(new URL("../lib/booking.ts", import.meta.url), "utf8");
 
-const TOOLS = ["find_business", "confirm_business", "resolve_area", "search_restaurants", "book_table"];
+const TOOLS = [
+  "find_business",
+  "confirm_business",
+  "resolve_area",
+  "search_restaurants",
+  "check_live",
+  "book_table",
+];
 
 /** The dynamic variables lib/booking.ts injects into the Booker agent. */
 const BOOKER_VARS = ["restaurant_name", "party_size", "when", "customer_name", "customer_phone"];
