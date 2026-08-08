@@ -265,9 +265,11 @@ body {
     var(--color-ink);
 }
 
-/* The orb has to share the screen with a transcript in here. */
+/* The orb has to share the screen with a transcript in here, and its bloom
+   spills well past its box — hence the margin under it. */
 .phone-screen .orb {
-  --orb-size: 148px;
+  --orb-size: 124px;
+  margin-block-end: 18px;
 }
 
 /* Sensor housing. Purely cosmetic, and the whole illusion rests on it. */

@@ -55,14 +55,40 @@ through client tools. `/console` is the original Dial receptionist above.
   "Lebanese food in JLT"
       └─▶ resolve_area ──▶ map card ──▶ visitor taps ──▶ search_restaurants
                                                             └─▶ Apify ──▶ grid
-      └─▶ book_table ──▶ /api/book ──▶ ElevenLabs + Twilio ──▶ outbound call
+      └─▶ book_table ──▶ /api/ring ──▶ the phone at /phone rings
+                                            └─▶ answered ──▶ Booker agent
                                                   └─▶ live transcript on screen
 ```
 
 Tools paint; taps talk. A tap never calls a tool — it sends a contextual update
 and the agent decides what happens next, so the voice stays ahead of the screen.
 
-The outbound call goes to the Dial agent at `/console`, primed with the demo
+## The phone
+
+`/phone` is the restaurant's end of the line, with no Twilio number in the
+middle. Open it on a second screen, press **Take the desk**, and it waits.
+
+```
+  book_table ──▶ POST /api/ring ──▶ in-memory line ──▶ /phone polls ──▶ rings
+                                                            │
+                                       you answer ──────────┴──▶ Booker agent
+                                       (WebRTC, booking pre-loaded as
+                                        dynamic variables)
+                                            └─▶ PATCH /api/ring ──▶ transcript
+                                                  back on the caller's card
+```
+
+You play the restaurant: the Booker asks you for the table, and the caller
+watches the transcript of your conversation appear on the canvas at `/`.
+
+`/api/book` — the real Twilio leg, allowlisted in `lib/booking.ts` — is still
+there for when there's a number to dial. Nothing on the `/phone` path reaches
+the PSTN, which is why it has no allowlist.
+
+It needs `ELEVENLABS_BOOKER_AGENT_ID` and nothing else — no Twilio number, no
+`DEMO_BOOKING_NUMBERS`.
+
+The Twilio path instead calls the Dial agent at `/console`, primed with the demo
 restaurant's Fact Sheet. Our booking bot books a table with our receptionist.
 
 Design doc: [`docs/superpowers/specs/2026-08-08-voice-canvas-design.md`](docs/superpowers/specs/2026-08-08-voice-canvas-design.md).
