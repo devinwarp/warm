@@ -16,6 +16,16 @@ import { lookupLive } from "@/lib/lookup";
 // the cached sheet and says so — a slow answer on stage is worse than a stale one.
 const TIMEOUT_MS = 6000;
 
+// ponytail: module-level, so the page's "last read" stamp only sees lookups
+// that landed on this instance. Fine for one demo conversation; the upgrade
+// path is a timestamp column next to the fact sheet in Supabase.
+let lastFetchedAt: string | null = null;
+
+/** GET /api/lookup -> { fetched_at } — the page polls this for the stamp. */
+export async function GET() {
+  return NextResponse.json({ fetched_at: lastFetchedAt });
+}
+
 export async function POST(request: Request) {
   const body = (await request.json().catch(() => null)) as {
     question?: unknown;
@@ -31,10 +41,11 @@ export async function POST(request: Request) {
   try {
     const answer = await lookupLive(body.question, body.source_url, signal);
 
+    lastFetchedAt = new Date().toISOString();
     return NextResponse.json({
       answer,
       source_url: body.source_url,
-      fetched_at: new Date().toISOString(),
+      fetched_at: lastFetchedAt,
     });
   } catch {
     // The agent must always get a usable turn back. Never a dead line.

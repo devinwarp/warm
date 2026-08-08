@@ -1,1 +1,42 @@
 @import "tailwindcss";
+
+@theme {
+  /* Night-shift operator console: ink-blue ground, one amber dial-tone lamp. */
+  --color-ink: #0e141b;
+  --color-panel: #141c26;
+  --color-line: #22303f;
+  --color-fg: #e9eef3;
+  --color-mute: #8ca0b3;
+  --color-lamp: #f3b54a;
+  --color-fault: #e5735f;
+
+  --font-sans: var(--font-plex-sans), system-ui, sans-serif;
+  --font-mono: var(--font-plex-mono), ui-monospace, monospace;
+  --font-display: var(--font-fraunces), georgia, serif;
+}
+
+body {
+  background: var(--color-ink);
+  color: var(--color-fg);
+  font-family: var(--font-sans);
+}
+
+@keyframes lamp-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.35;
+  }
+}
+
+.lamp-live {
+  animation: lamp-pulse 1.6s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lamp-live {
+    animation: none;
+  }
+}
