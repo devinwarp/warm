@@ -78,6 +78,22 @@ export function CardView({
     case "factsheet":
       return <FactSheetCard sheet={card.sheet} lastRead={{ at: card.sheet.crawled_at, live: false }} />;
 
+    case "restaurants":
+      return (
+        <Shell label={`${card.places.length} places`}>
+          <div className="grid gap-2 sm:grid-cols-2">
+            {card.places.map((place, i) => (
+              <PlaceRow
+                key={place.name + i}
+                place={place}
+                selected={card.chosen === i}
+                onClick={() => onChoose(card.id, i)}
+              />
+            ))}
+          </div>
+        </Shell>
+      );
+
     case "area": {
       const d = 0.035;
       const bbox = [card.lng - d, card.lat - d, card.lng + d, card.lat + d].join("%2C");

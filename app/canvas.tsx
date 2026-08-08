@@ -142,6 +142,32 @@ function CanvasInner({ agentId }: { agentId: string }) {
     }
   });
 
+  useConversationClientTool("search_restaurants", async (args) => {
+    const cuisine = text(args, "cuisine");
+    const area = text(args, "area");
+    if (!cuisine || !area) return "need both a cuisine and an area — ask for whichever is missing";
+
+    try {
+      const { places } = await post<{ places: Place[] }>("/api/places", {
+        query: `${cuisine} restaurant`,
+        area,
+        limit: 6,
+      });
+      if (places.length === 0) return `nothing came back for ${cuisine} in ${area} — offer another area`;
+
+      dispatch({ type: "add", card: { id: id(), kind: "restaurants", places, chosen: null } });
+
+      const top = places
+        .slice(0, 3)
+        .map((p) => `${p.name}${p.rating !== null ? ` at ${p.rating} stars` : ""}`)
+        .join(", ");
+      return `${places.length} ${cuisine} places in ${area}. Top three: ${top}. Name those three out loud and ask which one they want.`;
+    } catch (error) {
+      fault(error instanceof Error ? error.message : "the search failed");
+      return "the search failed — tell them and offer to try a different area";
+    }
+  });
+
   const onChoose = useCallback(
     (cardId: string, index: number) => {
       const card = cardsRef.current.find((c) => c.id === cardId);
