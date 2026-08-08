@@ -16,33 +16,23 @@ import { grade } from "./grade.ts";
  * Not in CI: it costs money and needs a key. Person 2 runs it at T+120 (after
  * the live tool lands) and again before feature freeze at T+170.
  *
- *   ANTHROPIC_API_KEY=... npm run eval
+ *   OPENROUTER_API_KEY=... npm run eval
  */
 
-// The agent's own model is configured in ElevenLabs and may not be Claude, so
-// this is an approximation of its judgment, not a replay of it. Low effort is
-// the closest match to a latency-tuned voice model.
-const MODEL = process.env.EVAL_MODEL ?? "claude-opus-5";
+// The agent's own model is configured in ElevenLabs, so this is an
+// approximation of its judgment, not a replay of it. A small fast model is the
+// closest match to what a latency-tuned voice agent actually runs.
+const MODEL = process.env.EVAL_MODEL ?? DEFAULT_MODEL;
 
-const client = new Anthropic();
 const template = systemPromptTemplate();
 
 async function ask(testCase: Case): Promise<string> {
   const sheet = BUSINESSES[testCase.business];
   if (!sheet) throw new Error(`${testCase.id}: unknown business "${testCase.business}"`);
 
-  const response = await client.messages.create({
+  return complete(render(template, factsheetToVariables(sheet)), testCase.question, {
     model: MODEL,
-    max_tokens: 4096,
-    output_config: { effort: "low" },
-    system: render(template, factsheetToVariables(sheet)),
-    messages: [{ role: "user", content: testCase.question }],
   });
-
-  return response.content
-    .filter((block) => block.type === "text")
-    .map((block) => block.text)
-    .join("\n");
 }
 
 const results = await Promise.all(
