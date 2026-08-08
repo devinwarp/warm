@@ -1,0 +1,34 @@
+{
+  "business_name": "Marina Family Clinic",
+  "one_line": "Walk-in GP, dental and physiotherapy clinic in Dubai Marina, open daily.",
+  "services": [
+    {
+      "name": "General consultation",
+      "price": "AED 250",
+      "description": "GP consultation, 20 minutes."
+    },
+    {
+      "name": "Dental cleaning",
+      "price": "AED 350",
+      "description": "Scale and polish with a hygienist."
+    },
+    {
+      "name": "Physiotherapy",
+      "price": null,
+      "description": "Assessed on the first visit."
+    }
+  ],
+  "hours": "Daily 9am–9pm, including public holidays.",
+  "locations": [
+    {
+      "branch": "Dubai Marina",
+      "address": "Unit 12, Marina Plaza, Dubai Marina, Dubai",
+      "phone": "+971 4 111 1111"
+    }
+  ],
+  "booking_policy": null,
+  "languages_spoken": ["English", "Arabic", "Malayalam"],
+  "escalation_note": "Take the caller's name and number and tell them reception will call back the same day.",
+  "source_url": "https://example.org",
+  "crawled_at": "2026-08-08T09:00:00.000Z"
+}

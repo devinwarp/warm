@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { FactSheetSchema } from "@/lib/factsheet";
+import { crawlAndExtract } from "@/lib/crawl";
 import { cacheFactSheet, getCachedFactSheet } from "@/lib/supabase";
 
 /**
@@ -27,15 +27,15 @@ export async function POST(request: Request) {
   const cached = await getCachedFactSheet(url);
   if (cached) return NextResponse.json(cached);
 
-  // TODO(Person 2): Context.dev crawl -> Claude Sonnet 5 extraction pass.
-  // Must return an object that survives FactSheetSchema.parse(), with every
-  // unpublished field null — no inference. See §8 of the PRD.
-  const sheet = FactSheetSchema.parse(await crawlAndExtract(url));
+  let sheet;
+  try {
+    sheet = await crawlAndExtract(url);
+  } catch (error) {
+    // The operator pasted the URL and is watching — say what broke.
+    const message = error instanceof Error ? error.message : "extraction failed";
+    return NextResponse.json({ error: message }, { status: 502 });
+  }
 
   await cacheFactSheet(url, sheet);
   return NextResponse.json(sheet);
-}
-
-async function crawlAndExtract(_url: string): Promise<unknown> {
-  throw new Error("not implemented — Person 2, T+40");
 }
