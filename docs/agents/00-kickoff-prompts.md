@@ -1,16 +1,13 @@
 # Kickoff prompts
 
-Four Devin sessions run in parallel — one per lane. These are the starting
-prompts, verbatim. Copy yours, run it, then open `NN-<lane>-<name>.md` and record
-the session link, what came back, and what you had to correct.
+A record of the four Devin sessions that ran in parallel to build this, one per
+area. The prompts below are verbatim, kept as history — the constraints inside
+them describe the repo as it was then, not standing rules. `AGENTS.md` is the
+current brief.
 
-The corrections are the point. A log of four clean successes tells a judge
-nothing about how we steer; a log showing where Devin went wrong and what
-re-prompt fixed it is the actual artifact.
+## Repo setup used for those sessions
 
-## Repo setup for every session
-
-Configure once in Devin's repo settings so it can verify its own work:
+Configured in Devin's repo settings so a session could verify its own work:
 
 - **Install:** `npm install`
 - **Test:** `npm run typecheck && npm test`

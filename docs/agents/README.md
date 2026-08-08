@@ -1,11 +1,10 @@
 # Steering log
 
-One file per Devin session: `NN-workstream-short-name.md`.
+A historical record of the sessions that built this, one file per Devin session:
+`NN-area-short-name.md`. The correction notes are the useful part — they show
+where the agent went wrong and what pulled it back.
 
-Judges read this. It is the evidence for "how well you steer the tools" — the
-correction notes matter more than the successes, because they show the loop.
-
-Template:
+Kept for context, not required going forward. The template these used:
 
 ```markdown
 # 01 — Data — Context.dev crawl to Fact Sheet
