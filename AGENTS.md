@@ -28,11 +28,16 @@ and §8 (data contract) before your first edit.
 
 ## Scope
 
-Do not build: auth, accounts, multi-tenant, booking, calendar, payments, call
-history, analytics, background re-crawls, dark mode. PRD §4 is the full list
-and it is not negotiable during the event.
+Do not build: auth, accounts, multi-tenant, calendar, payments, call history,
+analytics, background re-crawls, dark mode. PRD §4 is the full list and it is
+not negotiable during the event.
 
-Supabase holds one table: the fact sheet cache. Nothing else goes in it.
+Booking *was* on that list. It is now built, deliberately and with a design doc
+— see `docs/superpowers/specs/2026-08-08-voice-canvas-design.md`. That is the
+only scope change, and it took an approved spec to make it.
+
+Supabase holds three tables, all caches: the fact sheet cache, the places cache,
+and the demo status line. Nothing that isn't a cache goes in it.
 
 ## Working shape
 
