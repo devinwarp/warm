@@ -1,0 +1,39 @@
+{
+  "business_name": "Serene Skin & Hair",
+  "one_line": "Salon and skin clinic on Al Wasl Road, open late seven days a week.",
+  "services": [
+    {
+      "name": "Hydrafacial",
+      "price": "from AED 450",
+      "description": "Three-step cleanse, extract and hydrate facial, 45 minutes."
+    },
+    {
+      "name": "Keratin treatment",
+      "price": "on request",
+      "description": "Priced by hair length after a free consultation."
+    },
+    {
+      "name": "Men's haircut",
+      "price": "AED 120",
+      "description": "Cut and finish, walk-ins welcome."
+    }
+  ],
+  "hours": "Saturday to Thursday 10am–10pm, Friday 2pm–10pm.",
+  "locations": [
+    {
+      "branch": "Al Wasl",
+      "address": "Shop 4, Al Wasl Road, Jumeirah 1, Dubai",
+      "phone": "+971 4 000 0000"
+    },
+    {
+      "branch": "Business Bay",
+      "address": "Ground floor, Bay Square Building 6, Business Bay, Dubai",
+      "phone": null
+    }
+  ],
+  "booking_policy": "Appointments preferred, walk-ins taken when a chair is free.",
+  "languages_spoken": ["English", "Arabic", "Hindi", "Tagalog"],
+  "escalation_note": "Take the caller's name and number and tell them the salon will call back within the hour.",
+  "source_url": "https://example.com",
+  "crawled_at": "2026-08-08T09:00:00.000Z"
+}
