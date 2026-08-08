@@ -39,6 +39,34 @@ The crawl replaces onboarding. The live lookup replaces staleness.
 Two knowledge tiers. The cached Fact Sheet is fast; the live tier is current.
 The agent never has a third option where it guesses.
 
+## The voice canvas
+
+`/` is a voice canvas: the visitor talks, and a Concierge agent paints the page
+through client tools. `/console` is the original Dial receptionist above.
+
+```
+                  FIND A BUSINESS
+  "tell me about Qamar Table"
+      └─▶ find_business ──▶ Apify ──▶ candidate cards ──▶ confirm
+                                                            └─▶ /api/crawl
+                                                                └─▶ Fact Sheet
+
+                  BOOK A TABLE
+  "Lebanese food in JLT"
+      └─▶ resolve_area ──▶ map card ──▶ visitor taps ──▶ search_restaurants
+                                                            └─▶ Apify ──▶ grid
+      └─▶ book_table ──▶ /api/book ──▶ ElevenLabs + Twilio ──▶ outbound call
+                                                  └─▶ live transcript on screen
+```
+
+Tools paint; taps talk. A tap never calls a tool — it sends a contextual update
+and the agent decides what happens next, so the voice stays ahead of the screen.
+
+The outbound call goes to the Dial agent at `/console`, primed with the demo
+restaurant's Fact Sheet. Our booking bot books a table with our receptionist.
+
+Design doc: [`docs/superpowers/specs/2026-08-08-voice-canvas-design.md`](docs/superpowers/specs/2026-08-08-voice-canvas-design.md).
+
 ## Why each sponsor is load-bearing
 
 | Sponsor | Role | Remove it and… |
@@ -109,20 +137,48 @@ Both run in CI on every push.
 ## Layout
 
 ```
-app/api/crawl/    URL -> Fact Sheet (Lijeesh)
-app/api/lookup/   the lookup_live server tool (Lijeesh)
-app/page.tsx      the one page (Raja)
-lib/factsheet.ts  the contract — zod schema + variable flattening
-lib/supabase.ts   fact sheet cache
-fixtures/         shared example, committed before the implementations
-docs/agents/      Devin steering log
-docs/adr/         decisions that changed the build
+app/page.tsx       the voice canvas
+app/canvas.tsx     the five client tools + conversation wiring
+app/cards.tsx      every card the agent can paint
+app/console.tsx    the original Dial receptionist, now at /console
+
+app/api/crawl/     URL -> Fact Sheet (Lijeesh)
+app/api/lookup/    the lookup_live server tool (Lijeesh)
+app/api/places/    Apify Google Maps — both canvas flows
+app/api/geocode/   Nominatim — area confirmation before the slow scrape
+app/api/book/      the outbound booking call, allowlist-guarded
+
+lib/factsheet.ts   the contract — zod schema + variable flattening
+lib/canvas.ts      card model + reducer
+lib/places.ts      Apify client
+lib/booking.ts     the allowlist and the outbound call
+lib/supabase.ts    fact sheet + places cache
+
+prompts/           Concierge, Booker, and the Dial receptionist prompts
+fixtures/          shared examples, committed before the implementations
+docs/agents/       Devin steering log
+docs/adr/          decisions that changed the build
+docs/superpowers/  spec and implementation plan for the canvas
 ```
+
+## Safety: the booking allowlist
+
+`/api/book` will only dial numbers listed in `DEMO_BOOKING_NUMBERS`. An unset or
+empty allowlist means **nothing may be dialled** — that is deliberate, not a bug.
+
+The arguments reaching that endpoint come from a language model parsing speech
+from whoever is holding the microphone on a public URL. Without the allowlist
+this is a robodialer, so it is validated server-side before any outbound
+request, and `lib/booking.test.ts` covers the off-list and unset-list cases.
 
 ## What we deliberately didn't build
 
-Auth, accounts, multi-tenant, booking, payments, call history, analytics,
-background re-crawls. Full list in PRD §4.
+Auth, accounts, multi-tenant, payments, call history, analytics, background
+re-crawls. Calling any number not on the allowlist. Parsing "tomorrow at eight"
+into a timestamp. Full original list in PRD §4.
+
+Booking *was* on that list and is now built — see the canvas spec for why the
+scope changed.
 
 Next, if this goes further: multi-tenant provisioning, then a freshness policy
-per fact type — hours and prices re-read often, addresses rarely. Booking third.
+per fact type — hours and prices re-read often, addresses rarely.
