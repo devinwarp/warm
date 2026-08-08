@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { searchPlaces } from "@/lib/places";
+import { cachePlaces, getCachedPlaces, placesKey } from "@/lib/supabase";
 
 /**
  * POST /api/places  { query, area?, limit? }  ->  { places: Place[] }
@@ -27,10 +28,20 @@ export async function POST(request: Request) {
   const limit =
     typeof body.limit === "number" ? Math.min(Math.max(1, Math.trunc(body.limit)), MAX_LIMIT) : undefined;
 
+  const area = typeof body.area === "string" ? body.area : undefined;
+  const key = placesKey(body.query, area);
+
+  // A cache hit is the demo path. A miss must still work, and must still be
+  // narrated by the agent — a cold actor run is 20-90s.
+  const cached = await getCachedPlaces(key).catch(() => null);
+  if (cached) return NextResponse.json({ places: cached });
+
   try {
-    const places = await searchPlaces(body.query, {
-      area: typeof body.area === "string" ? body.area : undefined,
-      limit,
+    const places = await searchPlaces(body.query, { area, limit });
+
+    // A cache write failure must not take down a search that succeeded.
+    await cachePlaces(key, places).catch((error: unknown) => {
+      console.warn(`places cache write skipped: ${error instanceof Error ? error.message : error}`);
     });
     return NextResponse.json({ places });
   } catch (error) {

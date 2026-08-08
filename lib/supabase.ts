@@ -1,5 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
 import { type FactSheet, FactSheetSchema } from "./factsheet";
+import type { Place } from "./places";
 
 // ponytail: service-role client, server-only. There is no auth and no RLS —
 // one table, no user data. If this ever goes multi-tenant, that changes first.
@@ -7,6 +8,7 @@ import { type FactSheet, FactSheetSchema } from "./factsheet";
 // Built on first use, not at module scope: env vars don't exist at build time,
 // and a missing key should fail the request that needed it, not the deploy.
 type Row = { url: string; data: FactSheet; crawled_at: string };
+type PlacesRow = { key: string; data: Place[]; fetched_at: string };
 
 /** Mirrors supabase/migrations/0001_factsheets.sql. One table, hand-written. */
 type Database = {
@@ -16,6 +18,12 @@ type Database = {
         Row: Row;
         Insert: Omit<Row, "crawled_at"> & { crawled_at?: string };
         Update: Partial<Row>;
+        Relationships: [];
+      };
+      places: {
+        Row: PlacesRow;
+        Insert: Omit<PlacesRow, "fetched_at"> & { fetched_at?: string };
+        Update: Partial<PlacesRow>;
         Relationships: [];
       };
     };
@@ -56,4 +64,20 @@ export async function cacheFactSheet(url: string, sheet: FactSheet): Promise<voi
     .from("factsheets")
     .upsert({ url, data: sheet, crawled_at: sheet.crawled_at });
   if (error) throw new Error(`cache write failed: ${error.message}`);
+}
+
+/** Cache key for a place search. Case- and whitespace-insensitive. */
+export function placesKey(query: string, area?: string): string {
+  return `${query.trim()}|${area?.trim() ?? ""}`.toLowerCase().replace(/\s+/g, " ");
+}
+
+/** Cached places for a search, or null. Never throws — a miss is not an error. */
+export async function getCachedPlaces(key: string): Promise<Place[] | null> {
+  const { data } = await db().from("places").select("data").eq("key", key).maybeSingle();
+  return Array.isArray(data?.data) && data.data.length > 0 ? data.data : null;
+}
+
+export async function cachePlaces(key: string, places: Place[]): Promise<void> {
+  const { error } = await db().from("places").upsert({ key, data: places });
+  if (error) throw new Error(`places cache write failed: ${error.message}`);
 }

@@ -1,6 +1,28 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import fixture from "../fixtures/apify.places.json";
 import { normalizePlace, searchPlaces } from "./places";
+import { placesKey } from "./supabase";
+
+describe("placesKey", () => {
+  it("ignores case and surrounding whitespace", () => {
+    expect(placesKey("  Lebanese Restaurant ", " JLT Dubai ")).toBe(
+      placesKey("lebanese restaurant", "jlt dubai"),
+    );
+  });
+
+  it("collapses runs of internal whitespace", () => {
+    expect(placesKey("lebanese   restaurant", "jlt")).toBe(placesKey("lebanese restaurant", "jlt"));
+  });
+
+  it("keeps different areas apart", () => {
+    expect(placesKey("lebanese", "jlt")).not.toBe(placesKey("lebanese", "downtown"));
+  });
+
+  it("treats a missing area as empty, not as a wildcard", () => {
+    expect(placesKey("lebanese")).toBe("lebanese|");
+    expect(placesKey("lebanese")).not.toBe(placesKey("lebanese", "jlt"));
+  });
+});
 
 describe("normalizePlace", () => {
   it("normalizes a full item", () => {
