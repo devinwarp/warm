@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 
 /**
- * The system prompt lives in markdown so Person 1 can paste it straight into
+ * The system prompt lives in markdown so Taha can paste it straight into
  * the ElevenLabs dashboard. Everything that needs it in code reads it from
  * there — one copy, no drift between what we test and what the agent runs.
  */

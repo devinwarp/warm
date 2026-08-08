@@ -3,9 +3,9 @@
 **Event:** Dubai Voice Agents Hackathon
 **Sponsors in scope:** ElevenLabs, Context.dev, Devin
 **Build window:** 4.5 hours (270 min), cold start — teams form on the day
-**Team size:** 4 (5th person slot pre-assigned, see §11)
+**Team:** Taha (voice), Lijeesh (data), Raja (frontend), Shameer (glue & pitch) — 5th slot pre-assigned, see §11
 **Stack:** Next.js on Vercel, Supabase Postgres, OpenRouter for extraction
-**Status:** Locked. Changes after T+170 require Person 4 approval.
+**Status:** Locked. Changes after T+170 require Shameer's approval.
 
 ---
 
@@ -110,7 +110,7 @@ Rules:
 - Nulls are allowed and expected. The agent handles missing fields gracefully.
 - Prices are strings. Sites publish "from AED 150" and "on request".
 - No field may be inferred. If it isn't on the site, it is null.
-- Schema changes after T+20 require Person 4 approval and a message in the team channel.
+- Schema changes after T+20 require Shameer's approval and a message in the team channel.
 
 **Supabase**, one table, no RLS, no auth:
 
@@ -160,15 +160,15 @@ No navigation, no settings, no history, no dark mode debate.
 
 Everyone drives Devin. Devin is not one person's tool — it is the thing being judged.
 
-| Person | Owns | Never touches |
+| Who | Owns | Never touches |
 |---|---|---|
-| 1 — Voice | ElevenLabs agent, system prompt, dynamic variables, `lookup_live` tool wiring, language switching, latency | Web app |
-| 2 — Data | Context.dev crawl, extraction pass, live-lookup endpoint, Supabase cache, demo businesses | Voice config |
-| 3 — Frontend | The page, the widget embed, crawl log streaming | Backend logic |
-| 4 — Glue & pitch | API layer, Vercel deploy, env plumbing, demo script, kill list | Feature scope creep |
-| 5 (if assigned) | Eval harness, README, ADRs, submission artifacts | Anything on the critical path |
+| **Taha** — Voice | ElevenLabs agent, system prompt, dynamic variables, `lookup_live` tool wiring, language switching, latency | Web app |
+| **Lijeesh** — Data | Context.dev crawl, extraction pass, live-lookup endpoint, Supabase cache, demo businesses | Voice config |
+| **Raja** — Frontend | The page, the widget embed, crawl log streaming | Backend logic |
+| **Shameer** — Glue & pitch | API layer, Vercel deploy, env plumbing, demo script, kill list | Feature scope creep |
+| 5th, if one joins | Eval harness, README, ADRs, submission artifacts | Anything on the critical path |
 
-Person 4 holds merge approval after T+170 and is the only person who can approve additions. If no fifth person joins, §12 is Person 4's second job and the phone-number stretch goal is dead on arrival.
+Shameer holds merge approval after T+170 and is the only person who can approve additions. If no fifth person joins, §12 is Shameer's second job and the phone-number stretch goal is dead on arrival.
 
 ## 12. Codebase health — a scored deliverable
 
@@ -190,9 +190,9 @@ Assume nothing exists at T+0. No pre-purchased numbers, no pre-tested keys, no t
 | Window | Work |
 |---|---|
 | **0–20** | Team forms. Every person has every key in hand before anything else starts. Repo scaffold, zod schema, fixture committed. |
-| **20–40** | **Risk spike only.** Person 1 proves a voice agent answers from a hardcoded fact sheet. Person 2 proves Context.dev returns usable markdown for one real URL. Nothing else is built until both are green. |
+| **20–40** | **Risk spike only.** Taha proves a voice agent answers from a hardcoded fact sheet. Lijeesh proves Context.dev returns usable markdown for one real URL. Nothing else is built until both are green. |
 | **40–120** | Three Devin-driven workstreams. PRs into `main`. |
-| **T+120 — Checkpoint 1** | Real crawl → real conversation, end to end. **If red:** cut the frontend to a terminal log and move Person 3 onto voice. |
+| **T+120 — Checkpoint 1** | Real crawl → real conversation, end to end. **If red:** cut the frontend to a terminal log and move Raja onto voice. |
 | **120–170** | `lookup_live` tool working mid-call. Refusal eval passing. Language switch verified. |
 | **T+170 — Feature freeze** | Hard stop. Bug fixes only past this line. |
 | **170–210** | Codebase pass: README, ADRs, tests green, CI green, Devin session links collected, submission form filled. |
@@ -225,7 +225,7 @@ Pass criteria:
 7. Ask something that's nowhere on the site. Let it refuse.
 8. Close on onboarding cost + staleness, then thirty seconds on the repo: the contract, the eval harness, the Devin sessions.
 
-Two people on stage. Person 4 talks, Person 1 drives. The other two sit down.
+Two people on stage. Shameer talks, Taha drives. The other two sit down.
 
 ## 16. Risks and mitigations
 
@@ -238,7 +238,7 @@ Two people on stage. Person 4 talks, Person 1 drives. The other two sit down.
 | Target site is JS-rendered and crawls to nothing | Both demo businesses verified crawlable at T+40. A site that fails the crawl is not a demo business. |
 | Agent hallucinates a price | Hard refusal rule in the prompt, verified against the 16-question set. |
 | Dynamic variables don't work as expected | Verified in the T+20 spike. Fallback is knowledge-base push, accepting propagation delay and dropping the "60 seconds" claim to "under two minutes". |
-| Feature creep at hour three | Person 4 owns the kill list and has the final word. |
+| Feature creep at hour three | Shameer owns the kill list and has the final word. |
 | Codebase work gets squeezed out | It has its own 40-minute block after feature freeze, and the freeze is enforced by the person holding merge rights. |
 
 ## 17. Open items to confirm in the T+20 spike

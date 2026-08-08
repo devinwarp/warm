@@ -109,9 +109,9 @@ Both run in CI on every push.
 ## Layout
 
 ```
-app/api/crawl/    URL -> Fact Sheet (Person 2)
-app/api/lookup/   the lookup_live server tool (Person 2)
-app/page.tsx      the one page (Person 3)
+app/api/crawl/    URL -> Fact Sheet (Lijeesh)
+app/api/lookup/   the lookup_live server tool (Lijeesh)
+app/page.tsx      the one page (Raja)
 lib/factsheet.ts  the contract — zod schema + variable flattening
 lib/supabase.ts   fact sheet cache
 fixtures/         shared example, committed before the implementations

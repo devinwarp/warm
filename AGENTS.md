@@ -15,7 +15,7 @@ and §8 (data contract) before your first edit.
 - **The Fact Sheet is the contract.** `lib/factsheet.ts` is imported by all
   three workstreams. Do not widen, narrow, or "fix" the schema to make your
   own code compile. If it genuinely needs to change, that is a conversation
-  with Person 4, not a commit.
+  with Shameer, not a commit.
 - **TypeScript strict, no `any`.** If a type is hard, the shape is probably wrong.
 - **Never infer a fact.** If the site didn't publish it, the field is `null`
   and the agent refuses. A plausible-sounding price is the worst bug in this

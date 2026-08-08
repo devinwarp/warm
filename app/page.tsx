@@ -5,7 +5,7 @@ export default function Page() {
       <p className="text-neutral-500">
         Paste a business URL. Talk to it sixty seconds later.
       </p>
-      {/* Person 3, T+40: URL input, streaming crawl log, Fact Sheet, widget. */}
+      {/* Raja, T+40: URL input, streaming crawl log, Fact Sheet, widget. */}
     </main>
   );
 }

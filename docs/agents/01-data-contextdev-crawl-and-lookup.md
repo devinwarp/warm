@@ -41,3 +41,12 @@ Follow-ups during planning:
   duplicating them.
 - Flagged: `.env.example` had a real-looking `CONTEXT_API_KEY` committed —
   blanked in this session; the key should be rotated.
+- **Lane collision.** Shameer pushed `d2d3224` ("Use Context.dev to crawl
+  instead of a raw fetch") to `main` while this session was running — the same
+  swap, arrived at independently. Merged rather than overwritten: their
+  `maxDuration = 60` on the crawl route, their `CONTEXT_DEV_API_KEY ||
+  CONTEXT_API_KEY` fallback, and their titled per-page document format were all
+  better than mine and were kept. The configurable crawl level, the shared
+  `lib/contextdev.ts` client, and the whole live-lookup tier were only in mine
+  and survived. Cost: ~15 minutes of merge that a message in the channel would
+  have avoided.

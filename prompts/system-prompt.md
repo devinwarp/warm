@@ -1,6 +1,6 @@
 # ElevenLabs agent — system prompt
 
-Owner: Person 1 (Voice). Paste the block below into the agent's system prompt
+Owner: Taha (Voice). Paste the block below into the agent's system prompt
 field. Every double-brace placeholder is a dynamic variable injected at conversation
 start by `factsheetToVariables()` in `lib/factsheet.ts` — the names must match
 that function exactly, and `prompts/system-prompt.test.ts` fails if they drift.

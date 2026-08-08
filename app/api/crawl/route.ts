@@ -5,10 +5,16 @@ import { cacheFactSheet, getCachedFactSheet } from "@/lib/supabase";
 /**
  * POST /api/crawl  { url, maxPages?, maxDepth? }  ->  FactSheet
  *
- * Owner: Person 2 (Data).
- * maxPages/maxDepth are an operator knob for the crawl level; both optional,
- * clamped in lib/crawl.ts, env-defaulted (CRAWL_MAX_PAGES / CRAWL_MAX_DEPTH).
+ * Owner: Lijeesh (Data).
+ * Frontend and Voice build against this shape from T+20. maxPages/maxDepth are
+ * an operator knob for the crawl level; both optional, clamped in lib/crawl.ts,
+ * env-defaulted (CRAWL_MAX_PAGES / CRAWL_MAX_DEPTH).
  */
+
+// A multi-page Context.dev crawl plus the extraction pass runs tens of seconds.
+// Vercel's default function timeout is far shorter and would kill it mid-crawl.
+export const maxDuration = 60;
+
 export async function POST(request: Request) {
   const body = (await request.json().catch(() => null)) as {
     url?: unknown;

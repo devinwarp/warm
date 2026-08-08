@@ -13,7 +13,7 @@ import { grade } from "./grade.ts";
  * voice pipeline — those are verified by hand at T+120. This tests the part of
  * the agent that can hallucinate, which is the part worth automating.
  *
- * Not in CI: it costs money and needs a key. Person 2 runs it at T+120 (after
+ * Not in CI: it costs money and needs a key. Lijeesh runs it at T+120 (after
  * the live tool lands) and again before feature freeze at T+170.
  *
  *   OPENROUTER_API_KEY=... npm run eval

@@ -9,7 +9,7 @@ import { lookupLive } from "@/lib/lookup";
  * time-sensitive. This endpoint is the live tier — it is the difference between
  * this build and the example idea in the brief.
  *
- * Owner: Person 2 (Data). Wiring into the agent: Person 1 (Voice).
+ * Owner: Lijeesh (Data). Wiring into the agent: Taha (Voice).
  */
 
 // ponytail: hard ceiling, not a tuned number. Past this the agent falls back to
