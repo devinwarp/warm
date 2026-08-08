@@ -4,7 +4,7 @@ import { z } from "zod";
  * The Fact Sheet is the contract between all three workstreams:
  * Data produces it, Voice consumes it, Frontend renders it.
  *
- * Changing this file after T+20 needs Person 4's approval — everyone
+ * Changing this file after T+20 needs Shameer's approval — everyone
  * is building against it in parallel.
  */
 

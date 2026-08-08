@@ -8,7 +8,7 @@ import { NextResponse } from "next/server";
  * time-sensitive. This endpoint is the live tier — it is the difference between
  * this build and the example idea in the brief.
  *
- * Owner: Person 2 (Data). Wiring into the agent: Person 1 (Voice).
+ * Owner: Lijeesh (Data). Wiring into the agent: Taha (Voice).
  */
 
 // ponytail: hard ceiling, not a tuned number. Past this the agent falls back to
@@ -28,7 +28,7 @@ export async function POST(request: Request) {
   const signal = AbortSignal.timeout(TIMEOUT_MS);
 
   try {
-    // TODO(Person 2): live Context.dev query scoped to source_url's domain.
+    // TODO(Lijeesh): live Context.dev query scoped to source_url's domain.
     const answer = await lookupLive(body.question, body.source_url, signal);
 
     return NextResponse.json({
@@ -47,5 +47,5 @@ export async function POST(request: Request) {
 }
 
 async function lookupLive(_question: string, _sourceUrl: string, _signal: AbortSignal): Promise<string> {
-  throw new Error("not implemented — Person 2, T+120");
+  throw new Error("not implemented — Lijeesh, T+120");
 }
