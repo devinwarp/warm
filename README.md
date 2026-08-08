@@ -21,8 +21,8 @@ The crawl replaces onboarding. The live lookup replaces staleness.
 
 ```
                   ONBOARDING (once, ~60s)
-  URL ──▶ Context.dev crawl ──▶ Claude Sonnet 5 ──▶ Fact Sheet ──▶ Supabase
-                                  extraction         (zod-validated)   cache
+  URL ──▶ Context.dev crawl ──▶ extraction pass ──▶ Fact Sheet ──▶ Supabase
+                                  (OpenRouter)       (zod-validated)   cache
 
                   CONVERSATION (every call)
   Fact Sheet ──▶ dynamic variables ──▶ ElevenLabs agent
@@ -80,7 +80,8 @@ An agent that invents a price in front of a customer is worse than no agent. So:
 ## Stack
 
 Next.js on Vercel · Supabase Postgres (one table, the fact sheet cache) ·
-Claude Sonnet 5 for extraction · ElevenLabs Agents · Context.dev
+OpenRouter for extraction (any model; default `google/gemini-3.1-flash-lite`) ·
+ElevenLabs Agents · Context.dev
 
 ## Running it
 

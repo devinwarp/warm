@@ -4,7 +4,7 @@
 **Sponsors in scope:** ElevenLabs, Context.dev, Devin
 **Build window:** 4.5 hours (270 min), cold start — teams form on the day
 **Team size:** 4 (5th person slot pre-assigned, see §11)
-**Stack:** Next.js on Vercel, Supabase Postgres, Claude Sonnet 5 for extraction
+**Stack:** Next.js on Vercel, Supabase Postgres, OpenRouter for extraction
 **Status:** Locked. Changes after T+170 require Person 4 approval.
 
 ---
@@ -75,7 +75,7 @@ Each sponsor must be structurally necessary. If the product still works with one
 
 1. Operator pastes a URL.
 2. Context.dev crawls the domain → markdown.
-3. One Claude Sonnet 5 pass compresses the crawl into a Fact Sheet (§8), validated against the zod schema.
+3. One LLM pass via OpenRouter compresses the crawl into a Fact Sheet (§8), validated against the zod schema. Model is swappable with `OPENROUTER_MODEL`.
 4. Fact Sheet cached in Supabase, keyed by URL.
 5. Screen renders the Fact Sheet and the "talk to it" button.
 
