@@ -1,5 +1,5 @@
-import { Console } from "./console";
+import { Canvas } from "./canvas";
 
 export default function Page() {
-  return <Console agentId={process.env.NEXT_PUBLIC_ELEVENLABS_AGENT_ID ?? null} />;
+  return <Canvas agentId={process.env.NEXT_PUBLIC_ELEVENLABS_CONCIERGE_AGENT_ID ?? null} />;
 }
