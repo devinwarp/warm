@@ -119,20 +119,39 @@ cp .env.example .env.local   # fill in the keys
 npm run dev
 ```
 
-Database — one table, `supabase/migrations/0001_factsheets.sql`:
+Database — two tables:
 
 ```bash
 psql "$SUPABASE_DB_URL" -f supabase/migrations/0001_factsheets.sql
+psql "$SUPABASE_DB_URL" -f supabase/migrations/0002_places.sql
 ```
+
+Agents — creates the Concierge and Booker in ElevenLabs from the committed
+prompts, and prints the two agent ids to paste back into `.env.local`. It is
+idempotent, so it is also how you push a prompt edit:
+
+```bash
+node --env-file=.env.local scripts/setup-agents.mts
+```
+
+Two things it deliberately does not do, because they cost money:
+
+- **`APIFY_TOKEN`** — apify.com → Settings → API token.
+- **The phone leg** — buy a Twilio number, import it under ElevenLabs → Phone
+  numbers, attach the Booker agent, then set `ELEVENLABS_AGENT_PHONE_NUMBER_ID`
+  and put the number you want it allowed to dial in `DEMO_BOOKING_NUMBERS`.
 
 Checks:
 
 ```bash
 npm run typecheck
-npm test
+npm test              # 88 unit tests
+npm run smoke         # end-to-end, needs the dev server up
+npm run prewarm       # fill the places cache before a demo
 ```
 
-Both run in CI on every push.
+`typecheck` and `test` run in CI on every push. `smoke` needs a system Chrome;
+its voice leg self-skips when no agent id is configured.
 
 ## Layout
 
