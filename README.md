@@ -9,6 +9,7 @@ might have changed since this morning.
 Built at the Dubai Voice Agents Hackathon. Engineering reasoning:
 [`TECH-SPEC.md`](TECH-SPEC.md). Product spec:
 [`plans/PRD-voice-receptionist-hackathon.md`](plans/PRD-voice-receptionist-hackathon.md).
+The six judging questions are answered in [one section](#the-six-questions).
 
 ## The problem
 
@@ -99,6 +100,141 @@ needed a real phone number between the two agents. That leg is deleted. A human
 answers instead, and `/console` stays as the receptionist demo in its own right.
 
 Design doc: [`docs/superpowers/specs/2026-08-08-voice-canvas-design.md`](docs/superpowers/specs/2026-08-08-voice-canvas-design.md).
+
+## The six questions
+
+### 1. What problem does this solve, and who is it for? *(~30s)*
+
+Small businesses with a working website and a phone nobody answers — the salon on
+Al Wasl Road, the clinic, the restaurant taking bookings over WhatsApp at 11pm.
+Their customers call, in five languages, after hours, asking the six questions the
+website already answers.
+
+AI receptionists exist and none of them reached these businesses, because
+onboarding is a week of someone hand-building a knowledge base per customer — and
+the day it's finished it starts going stale. Prices change, a branch closes,
+Ramadan hours shift.
+
+Dial replaces both halves: paste a URL and the agent is answering in about a
+minute, and it re-reads the site mid-conversation for anything that might have
+moved since. It matters because onboarding cost is what keeps this market
+unserved, and staleness is what makes an agent worse than voicemail — one
+confidently recited stale price loses the customer and the trust in one turn.
+
+### 2. Live demo *(~2 min)*
+
+Step-by-step with the seed phrases: [Trying it](#trying-it). What the agent pulls,
+when, and from where:
+
+| When | What it pulls | From where |
+|---|---|---|
+| Onboarding, once, ~60s | Whole site → LLM-ready markdown → zod-validated Fact Sheet (hours, services with prices, locations, booking policy, languages) | **context.dev** `POST /v1/web/crawl`, `useMainContentOnly: true` — nav, footers and cookie banners dropped server-side. Cached in Supabase. |
+| Mid-conversation, on demand | One page, re-read as of this second, to answer "are you open tonight", "what does that cost now" | **context.dev** `GET /v1/web/scrape/markdown`, **`maxAgeMs: 0`** — the business's own site. `lookup_live`, 6s ceiling. |
+| Mid-conversation, on demand | Star rating, review count, the live "Open · Closes 2 AM" line | **context.dev** same endpoint, `useMainContentOnly: false` — the place's **Google listing**. `check_live`. |
+| During a search | Candidate places, coordinates, review keywords | Apify Google Maps actor; Nominatim for area confirmation. |
+
+Two live tiers, two different sources, two different questions — a website never
+publishes how it is rated or admits it is closed right now; a Google listing
+never publishes the price list. Both re-read while the caller is mid-sentence.
+
+The demo says the freshness out loud — *"4.3, and it says it's open until 2am — I
+just looked"* — and the page stamps the fetch time next to the answer, so the
+audience sees the read happen rather than taking the agent's word for it.
+
+### 3. Why is live web data essential? *(~30s)*
+
+**Our project would fundamentally break without live web data because the only
+thing we actually sell is that the answer is true *right now* — every other part
+of the product is a cache, and a cache is a photograph of a business that has
+since changed its hours.** Strip the live tier out and what's left is the stale
+knowledge base we set out to replace, with a nicer voice.
+
+It does handle data that changes mid-conversation, and that is a staged, provable
+claim rather than an assertion: the three fixture sites at `/demo/*` carry a
+status line we flip from a phone bookmark (`/api/demo-status`). Ask the agent the
+hours, flip the line, ask again — the answer changes under it, inside the same
+conversation, because `maxAgeMs: 0` means there is no cache between the question
+and the site.
+
+### 4. Beyond text-to-speech, what does the agent do on its own? *(~45s)*
+
+**Decisions it makes without us:** which of six tools to call, and in what order;
+whether a question is covered by the cached sheet or needs a live read (the
+time-sensitive cues — *tonight, still, right now* — are its judgement, not a
+regex on our side); which of four missing booking facts to ask for next, one
+question at a time, because no form ever appears; when to refuse. And once it has
+the booking, it places a second call, talks to a human at the restaurant on the
+other end, and comes back with the outcome.
+
+**The refusal is the designed behaviour, not a guardrail bolted on.** Unpublished
+is `null`, renders as `"not published on the site"`, and the agent says it doesn't
+know and offers a callback. A 16-case eval harness fails the build for nine banned
+hedges ("typically", "usually", "approximately"…) or for quoting money on an
+uncovered question.
+
+**ElevenLabs features doing real work** — none of them TTS:
+
+- **Client tools** (`useConversationClientTool`) + **`sendContextualUpdate`** —
+  the whole generative-UI mechanic. This is why `/` uses `@elevenlabs/react`
+  rather than the `<elevenlabs-convai>` embed, which cannot register client tools.
+- **Server tool** — `lookup_live` is the entire first live tier, called
+  mid-conversation.
+- **Dynamic variables at conversation start** — the Fact Sheet reaches the
+  receptionist, and the whole booking reaches the Booker before the phone rings,
+  by the same injection path. No knowledge-base upload, no propagation wait; this
+  is what makes "paste a URL, talk in 60 seconds" true rather than aspirational.
+- **Interruption and mid-conversation language switching** — callers talk over
+  receptionists, and English/Arabic/Hindi/Tagalog is the real language mix of a
+  Dubai SME's callers.
+- **WebRTC** for both the canvas and the desk phone.
+
+**Personality** is designed in the committed prompts, in behaviour rather than
+adjectives: one or two sentences, warm and quick, no corporate filler; say what
+you're doing *before* a slow tool because silence sounds like a dropped call; stop
+mid-word when interrupted; switch language without remarking on it; say you are an
+AI if asked and carry on. Three agents, three personalities — the Concierge works
+*for* the caller, the receptionist answers *as* the business, the Booker is a
+stranger on the phone who states its business and gets off the line.
+
+Voice selection itself is the one thing left in the ElevenLabs dashboard —
+`scripts/setup-agents.mts` pins prompts, tools and language but deliberately does
+not pin a `voice_id`, so the voice is chosen per demo rather than committed.
+
+### 5. What makes this novel? *(~30s)*
+
+**The knowledge source is the business's own live website, read twice — once to
+onboard, again mid-sentence — so there is no knowledge base in the product at
+all.** Everyone's receptionist demo has an index someone filled in; ours has a
+URL. That single choice is what removes the week of onboarding *and* the staleness
+in one move.
+
+Two things on top of it we haven't seen combined: two live tiers from two
+different sources answering different questions in the same breath (own site for
+facts, Google listing for reputation and open-now), and a voice agent that paints
+its own UI through client tools, then hands off to a second agent that calls a
+human and streams that transcript back onto the first caller's screen. Voice →
+screen → voice, with taps as conversational context rather than clicks.
+
+### 6. Hardest problem *(~30s)*
+
+**A client tool that waits on a human hangs the conversation.** The canvas needs
+the caller to confirm a match by tapping, but a tool call is a blocking turn — the
+agent stands mute until it returns, and a tool waiting on a tap that may never
+come is a dead line. Making the taps *interruptions* didn't work either: the agent
+loses its place.
+
+The fix was to stop treating a tap as an answer. Tools return immediately with a
+line the agent must say out loud; taps travel back separately as
+`sendContextualUpdate("The visitor tapped …")`, which the agent folds into
+whatever it is already doing. Nothing blocks, and the voice stays ahead of the
+screen instead of narrating it. That inversion is the load-bearing idea in
+`app/canvas.tsx`.
+
+Runner-up, and the most expensive debugging cycle: passing the area to the Apify
+actor as `locationQuery` resolves "Jumeirah Lake Towers Dubai" to a point of
+interest with a 0 km² polygon, so every result is discarded as `outOfLocation` and
+the actor returns an empty list after 12 seconds — a silent success. The area goes
+in the search string. The comment is in the code so nobody re-learns it.
 
 ## Why each sponsor is load-bearing
 
@@ -226,7 +362,7 @@ Checks:
 
 ```bash
 npm run typecheck
-npm test              # 106 unit tests, 15 files
+npm test              # 95 unit tests, 14 files
 npm run smoke         # end-to-end, needs the dev server up
 npm run prewarm       # fill the places cache before a demo
 ```
