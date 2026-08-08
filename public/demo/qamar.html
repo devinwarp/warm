@@ -1,0 +1,390 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Qamar Table — Levantine grill, Jumeirah Lakes Towers</title>
+<meta name="description" content="A charcoal grill and a long table in JLT. Mezze, whole fish, and one dessert. Open late.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Rozha+One&family=Commissioner:wght@300..700&family=Amiri:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    /* warm charcoal, neutrals pulled toward hue 45 */
+    --night:    oklch(0.176 0.017 44);
+    --night-2:  oklch(0.232 0.021 42);
+    --night-3:  oklch(0.298 0.024 42);
+    --cream:    oklch(0.936 0.017 78);
+    --cream-2:  oklch(0.752 0.021 72);
+    --ember:    oklch(0.712 0.148 52);
+    --rule:     oklch(0.936 0.017 78 / 0.16);
+
+    --step--1: clamp(0.85rem, 0.82rem + 0.14vw, 0.94rem);
+    --step-0:  clamp(1.02rem, 0.98rem + 0.22vw, 1.16rem);
+    --step-1:  clamp(1.32rem, 1.2rem + 0.6vw, 1.7rem);
+    --step-2:  clamp(1.85rem, 1.5rem + 1.6vw, 3rem);
+    --step-3:  clamp(3rem, 1.9rem + 5.2vw, 7rem);
+    --step-4:  clamp(3.8rem, 1.6rem + 10vw, 11rem);
+
+    --space-2xs: 4px;  --space-xs: 8px;  --space-sm: 12px;
+    --space-md: 16px;  --space-lg: 24px; --space-xl: 32px;
+    --space-2xl: 48px; --space-3xl: 64px; --space-4xl: 96px;
+
+    --gutter: clamp(20px, 5vw, 80px);
+  }
+
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0;
+    background: var(--night);
+    color: var(--cream);
+    font-family: "Commissioner", ui-sans-serif, system-ui, sans-serif;
+    font-size: var(--step-0);
+    font-weight: 350;
+    /* light-on-dark reads lighter — extra leading */
+    line-height: 1.72;
+  }
+  ::selection { background: var(--ember); color: var(--night); }
+
+  h1, h2, .display { font-family: "Rozha One", Georgia, serif; font-weight: 400; }
+  .arabic { font-family: "Amiri", serif; }
+
+  a { color: inherit; text-underline-offset: 4px; }
+  a:focus-visible { outline: 2px solid var(--ember); outline-offset: 4px; border-radius: 2px; }
+
+  .wrap { max-width: 1220px; margin-inline: auto; padding-inline: var(--gutter); }
+
+  /* ---------- tonight strip : the line that changes ---------- */
+  .tonight {
+    background: var(--ember);
+    color: var(--night);
+    font-size: var(--step--1);
+    font-weight: 500;
+    letter-spacing: 0.015em;
+    line-height: 1.5;
+  }
+  .tonight .wrap {
+    display: flex; flex-wrap: wrap; gap: var(--space-xs) var(--space-lg);
+    align-items: baseline; padding-block: var(--space-sm);
+  }
+  .tonight b { text-transform: uppercase; letter-spacing: 0.1em; font-size: 0.85em; font-weight: 700; }
+
+  /* ---------- hero ---------- */
+  .hero { position: relative; isolation: isolate; min-height: min(88svh, 820px); display: flex; align-items: flex-end; }
+  .hero img {
+    position: absolute; inset: 0; z-index: -2;
+    width: 100%; height: 100%; object-fit: cover;
+    filter: saturate(0.78) contrast(1.06) brightness(0.72);
+  }
+  .hero::after {
+    content: ""; position: absolute; inset: 0; z-index: -1;
+    background: linear-gradient(to top, var(--night) 4%, oklch(0.176 0.017 44 / 0.72) 42%, oklch(0.176 0.017 44 / 0.25) 100%);
+  }
+  .hero .wrap { padding-block: clamp(48px, 9vw, 120px); width: 100%; }
+  .kicker {
+    font-size: var(--step--1); font-weight: 600;
+    letter-spacing: 0.2em; text-transform: uppercase;
+    color: var(--ember);
+  }
+  h1 {
+    font-size: var(--step-4);
+    line-height: 0.82;
+    letter-spacing: -0.02em;
+    margin: var(--space-lg) 0 0;
+  }
+  .arabic-name {
+    font-size: clamp(1.6rem, 0.9rem + 3vw, 3.4rem);
+    color: var(--cream-2);
+    margin: var(--space-md) 0 0;
+    direction: rtl;
+    width: fit-content;
+    line-height: 1.1;
+  }
+  .hero p.sub {
+    font-size: var(--step-1);
+    line-height: 1.5;
+    max-width: 30ch;
+    margin: var(--space-xl) 0 0;
+    color: var(--cream);
+  }
+
+  /* ---------- sections ---------- */
+  section { padding-block: clamp(52px, 8vw, 110px); }
+  section + section { border-top: 1px solid var(--rule); }
+  .head {
+    display: grid; gap: var(--space-md);
+    margin-bottom: var(--space-2xl);
+  }
+  @media (min-width: 800px) {
+    .head { grid-template-columns: minmax(0, 1fr) minmax(0, 34ch); align-items: end; gap: clamp(32px, 6vw, 88px); }
+  }
+  h2 { font-size: var(--step-2); line-height: 1.02; letter-spacing: -0.015em; margin: 0; text-wrap: balance; }
+  .head p { margin: 0; color: var(--cream-2); max-width: 44ch; }
+
+  /* ---------- menu ---------- */
+  .course {
+    font-size: var(--step--1); font-weight: 600;
+    letter-spacing: 0.18em; text-transform: uppercase;
+    color: var(--ember);
+    padding-bottom: var(--space-sm);
+    border-bottom: 1px solid var(--rule);
+    margin: var(--space-2xl) 0 0;
+  }
+  .course:first-of-type { margin-top: 0; }
+  .dish {
+    display: grid; gap: var(--space-2xs) var(--space-lg);
+    grid-template-columns: minmax(0, 1fr) auto;
+    padding-block: var(--space-md);
+    border-bottom: 1px solid var(--rule);
+  }
+  .dish h3 {
+    grid-column: 1; margin: 0;
+    font-family: "Commissioner", sans-serif;
+    font-size: var(--step-1); font-weight: 500; line-height: 1.25;
+    letter-spacing: -0.01em;
+  }
+  .dish .aed {
+    grid-column: 2; grid-row: 1;
+    font-family: "Rozha One", serif;
+    font-size: var(--step-1);
+    font-variant-numeric: lining-nums tabular-nums;
+    white-space: nowrap; color: var(--cream);
+  }
+  .dish .aed small { font-family: "Commissioner", sans-serif; font-size: 0.55em; letter-spacing: 0.12em; color: var(--cream-2); margin-right: 0.35em; vertical-align: 0.25em; }
+  .dish p { grid-column: 1 / -1; margin: 0; color: var(--cream-2); max-width: 58ch; }
+
+  /* ---------- photo strip ---------- */
+  .strip {
+    display: grid; grid-auto-flow: column;
+    grid-auto-columns: minmax(230px, 1fr);
+    gap: var(--space-md);
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    padding-bottom: var(--space-sm);
+    scrollbar-width: thin;
+  }
+  .strip figure { margin: 0; scroll-snap-align: start; }
+  .strip img {
+    display: block; width: 100%; aspect-ratio: 3 / 4; object-fit: cover;
+    background: var(--night-2); filter: saturate(0.8) brightness(0.88);
+  }
+  .strip figcaption { font-size: var(--step--1); color: var(--cream-2); padding-top: var(--space-xs); }
+
+  /* ---------- rooms / hours ---------- */
+  .rooms { display: grid; gap: var(--space-xl); }
+  @media (min-width: 760px) { .rooms { grid-template-columns: 1fr 1fr; gap: clamp(32px, 6vw, 80px); } }
+  .room h3 {
+    font-family: "Rozha One", serif; font-weight: 400;
+    font-size: var(--step-1); line-height: 1.15; margin: 0 0 var(--space-sm);
+  }
+  .room p { margin: 0 0 var(--space-sm); color: var(--cream-2); max-width: 40ch; }
+  .room .tel { color: var(--cream); font-variant-numeric: lining-nums tabular-nums; }
+
+  table.hours { border-collapse: collapse; width: 100%; max-width: 46ch; margin-top: var(--space-md); }
+  table.hours th, table.hours td {
+    text-align: left; padding: var(--space-sm) 0;
+    border-bottom: 1px solid var(--rule); font-weight: 400;
+  }
+  table.hours th { color: var(--cream-2); font-weight: 500; }
+  table.hours td { text-align: right; font-variant-numeric: lining-nums tabular-nums; }
+
+  .note {
+    margin-top: var(--space-2xl);
+    padding: var(--space-lg);
+    background: var(--night-2);
+    max-width: 62ch;
+  }
+  .note h3 { margin: 0 0 var(--space-xs); font-family: "Commissioner", sans-serif; font-size: var(--step-0); font-weight: 600; letter-spacing: 0.02em; }
+  .note p { margin: 0; color: var(--cream-2); }
+
+  footer {
+    border-top: 1px solid var(--rule);
+    padding-block: var(--space-2xl) var(--space-4xl);
+    color: var(--cream-2); font-size: var(--step--1);
+    display: flex; flex-wrap: wrap; gap: var(--space-sm) var(--space-2xl); justify-content: space-between;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .rise { animation: rise 1000ms cubic-bezier(0.16, 1, 0.3, 1) backwards; }
+    .rise:nth-of-type(1) { animation-delay: 80ms; }
+    .rise:nth-of-type(2) { animation-delay: 180ms; }
+    .rise:nth-of-type(3) { animation-delay: 280ms; }
+    @keyframes rise { from { opacity: 0; transform: translateY(18px); } }
+  }
+</style>
+</head>
+<body>
+
+<!-- ─── LIVE DEMO: edit this one line mid-call, redeploy, ask again ─── -->
+<div class="tonight">
+  <div class="wrap">
+    <b>Tonight</b>
+    <span>Saturday 8 August — the grill stops at 23:00 and the kitchen closes at 23:30.</span>
+    <span>Two tables left for walk-ins after 21:00.</span>
+  </div>
+</div>
+
+<div class="hero">
+  <img src="https://images.pexels.com/photos/776538/pexels-photo-776538.jpeg?auto=compress&cs=tinysrgb&w=2000"
+       alt="A warm-lit dining room with hanging lamps over the tables" fetchpriority="high" decoding="async">
+  <div class="wrap">
+    <p class="kicker rise">Cluster R, Jumeirah Lakes Towers</p>
+    <h1 class="rise">Qamar Table</h1>
+    <p class="arabic-name arabic rise">طاولة قمر</p>
+    <p class="sub rise">One charcoal grill, one long table, and a kitchen that
+      stays open later than it should.</p>
+  </div>
+</div>
+
+<div class="wrap">
+
+  <section>
+    <div class="head">
+      <h2>The menu, all of it</h2>
+      <p>It changes twice a year and not otherwise. Everything is priced in dirhams
+        and every price already includes VAT and service.</p>
+    </div>
+
+    <p class="course">To start</p>
+    <div class="dish">
+      <h3>Hummus, brown butter, pine nuts</h3>
+      <p class="aed"><small>AED</small>38</p>
+      <p>Chickpeas soaked overnight, blended warm. Comes with two rounds of bread.</p>
+    </div>
+    <div class="dish">
+      <h3>Muhammara</h3>
+      <p class="aed"><small>AED</small>42</p>
+      <p>Roasted red pepper and walnut, pomegranate molasses, a lot of Aleppo pepper.</p>
+    </div>
+    <div class="dish">
+      <h3>Fattoush, winter</h3>
+      <p class="aed"><small>AED</small>46</p>
+      <p>Sumac, purslane, and the bread fried rather than toasted.</p>
+    </div>
+    <div class="dish">
+      <h3>Grilled halloumi, honey, za'atar</h3>
+      <p class="aed"><small>AED</small>52</p>
+      <p>Two thick slices, charred on the grill, not the pan.</p>
+    </div>
+
+    <p class="course">From the grill</p>
+    <div class="dish">
+      <h3>Whole sea bream</h3>
+      <p class="aed"><small>AED</small>145</p>
+      <p>Around 600 grams, salt-crusted, served with lemon and nothing else. Takes 25 minutes.</p>
+    </div>
+    <div class="dish">
+      <h3>Lamb chops, four</h3>
+      <p class="aed"><small>AED</small>168</p>
+      <p>Marinated for a day in yoghurt and garlic. Ordered medium unless you say otherwise.</p>
+    </div>
+    <div class="dish">
+      <h3>Shish taouk</h3>
+      <p class="aed"><small>AED</small>92</p>
+      <p>Two skewers, garlic sauce on the side, pickled turnip.</p>
+    </div>
+    <div class="dish">
+      <h3>Grilled aubergine, tahini, herbs</h3>
+      <p class="aed"><small>AED</small>64</p>
+      <p>The whole vegetable, blackened on the coals until it collapses.</p>
+    </div>
+    <div class="dish">
+      <h3>Mixed grill for the table</h3>
+      <p class="aed"><small>AED</small>420</p>
+      <p>Feeds four comfortably. Lamb, chicken, kofta, and whatever fish came in that morning.</p>
+    </div>
+
+    <p class="course">Sweet</p>
+    <div class="dish">
+      <h3>Ashta with pistachio and orange blossom</h3>
+      <p class="aed"><small>AED</small>44</p>
+      <p>The only dessert. It has been the only dessert since we opened.</p>
+    </div>
+  </section>
+
+  <section>
+    <div class="head">
+      <h2>The room</h2>
+      <p>Forty covers downstairs, eighteen on the terrace. The terrace is closed
+        between June and September because nobody wants to sit on it.</p>
+    </div>
+    <div class="strip">
+      <figure>
+        <img src="https://images.pexels.com/photos/13130549/pexels-photo-13130549.jpeg?auto=compress&cs=tinysrgb&w=900" alt="A dim dining room seen through the front glass" decoding="async">
+        <figcaption>The long table seats fourteen and is not divided up.</figcaption>
+      </figure>
+      <figure>
+        <img src="https://images.pexels.com/photos/1510714/pexels-photo-1510714.jpeg?auto=compress&cs=tinysrgb&w=900" alt="A plated fish fillet with vegetables" decoding="async">
+        <figcaption>Bream, off the coals, about six minutes a side.</figcaption>
+      </figure>
+      <figure>
+        <img src="https://images.pexels.com/photos/34686219/pexels-photo-34686219.jpeg?auto=compress&cs=tinysrgb&w=900" alt="The back of a low-lit dining room" decoding="async">
+        <figcaption>The back of the room, which is the part that fills first.</figcaption>
+      </figure>
+      <figure>
+        <img src="https://images.pexels.com/photos/39634/pexels-photo-39634.jpeg?auto=compress&cs=tinysrgb&w=900" alt="A grilled meat dish on a plate" decoding="async">
+        <figcaption>Lamb, marinated a day, and never ordered by the kilo.</figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <section>
+    <div class="head">
+      <h2>Hours &amp; booking</h2>
+      <p>We hold a third of the room back for walk-ins every night, so it is always
+        worth turning up.</p>
+    </div>
+
+    <table class="hours">
+      <caption class="course" style="text-align:left; caption-side:top;">Service</caption>
+      <tbody>
+        <tr><th scope="row">Monday</th><td>Closed</td></tr>
+        <tr><th scope="row">Tuesday to Thursday</th><td>18:00 – 23:30</td></tr>
+        <tr><th scope="row">Friday &amp; Saturday</th><td>13:00 – 16:00, 18:00 – 00:30</td></tr>
+        <tr><th scope="row">Sunday</th><td>13:00 – 22:30</td></tr>
+      </tbody>
+    </table>
+
+    <div class="note">
+      <h3>Reservations</h3>
+      <p>Tables of one to four are walk-in only — we don't take bookings for them.
+        Five or more can be reserved by phone, and we hold the table for fifteen
+        minutes past the booked time. Groups of ten and over are asked for a set
+        menu, agreed in advance.</p>
+    </div>
+  </section>
+
+  <section>
+    <div class="head">
+      <h2>Two addresses</h2>
+      <p>The Al Quoz kitchen is takeaway and collection only. It has no dining room
+        and no phone line of its own.</p>
+    </div>
+    <div class="rooms">
+      <div class="room">
+        <h3>JLT — the restaurant</h3>
+        <p>Unit 4, Cluster R, Jumeirah Lakes Towers, Dubai. Ground floor, facing the lake.</p>
+        <p><a class="tel" href="tel:+97144470119">+971 4 447 0119</a></p>
+      </div>
+      <div class="room">
+        <h3>Al Quoz — collection kitchen</h3>
+        <p>Warehouse 7, Street 6, Al Quoz Industrial 3, Dubai. Collection from 17:00,
+          orders placed through the JLT number.</p>
+      </div>
+    </div>
+
+    <div class="note">
+      <h3>Languages at the door</h3>
+      <p>English, Arabic and Tagalog on every shift. The head chef also speaks Farsi.</p>
+    </div>
+  </section>
+
+  <footer>
+    <span>Qamar Table, Cluster R, JLT, Dubai.</span>
+    <span>Menu and prices last changed 14 July 2026.</span>
+  </footer>
+</div>
+
+</body>
+</html>

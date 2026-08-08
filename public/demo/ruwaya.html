@@ -1,0 +1,379 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ruwaya Hair Studio — Al Wasl Road, Dubai</title>
+<meta name="description" content="A six-chair hair studio on Al Wasl Road. Cut, colour, balayage and keratin, by appointment.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,300..800&family=Petrona:ital,wght@0,300..600;1,300..500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    /* clay + saffron, neutrals tinted toward hue 62 */
+    --paper:      oklch(0.968 0.011 68);
+    --paper-deep: oklch(0.936 0.017 66);
+    --ink:        oklch(0.245 0.021 52);
+    --ink-soft:   oklch(0.475 0.024 55);
+    --rule:       oklch(0.245 0.021 52 / 0.16);
+    --saffron:    oklch(0.618 0.152 58);
+
+    --step--1: clamp(0.82rem, 0.79rem + 0.14vw, 0.9rem);
+    --step-0:  clamp(1rem, 0.96rem + 0.2vw, 1.12rem);
+    --step-1:  clamp(1.3rem, 1.19rem + 0.55vw, 1.65rem);
+    --step-2:  clamp(1.75rem, 1.5rem + 1.2vw, 2.6rem);
+    --step-3:  clamp(2.6rem, 1.9rem + 3.4vw, 5rem);
+    --step-4:  clamp(3.4rem, 1.9rem + 7vw, 8.5rem);
+
+    --space-2xs: 4px;  --space-xs: 8px;  --space-sm: 12px;
+    --space-md: 16px;  --space-lg: 24px; --space-xl: 32px;
+    --space-2xl: 48px; --space-3xl: 64px; --space-4xl: 96px;
+
+    --measure: 62ch;
+    --gutter: clamp(20px, 5vw, 88px);
+  }
+
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: "Petrona", Georgia, serif;
+    font-size: var(--step-0);
+    line-height: 1.62;
+    font-variant-numeric: oldstyle-nums;
+  }
+  ::selection { background: var(--saffron); color: var(--paper); }
+
+  h1, h2, h3, .grot {
+    font-family: "Bricolage Grotesque", ui-sans-serif, system-ui, sans-serif;
+    font-variant-numeric: lining-nums tabular-nums;
+  }
+
+  a { color: inherit; text-underline-offset: 3px; text-decoration-thickness: 1px; }
+  a:focus-visible { outline: 2px solid var(--saffron); outline-offset: 3px; border-radius: 2px; }
+
+  .wrap { max-width: 1180px; margin-inline: auto; padding-inline: var(--gutter); }
+
+  /* ---------- today band : the line that changes ---------- */
+  .today {
+    background: var(--ink);
+    color: var(--paper);
+    font-family: "Bricolage Grotesque", sans-serif;
+    font-size: var(--step--1);
+    font-weight: 500;
+    letter-spacing: 0.02em;
+  }
+  .today .wrap {
+    display: flex; flex-wrap: wrap; align-items: baseline;
+    gap: var(--space-xs) var(--space-lg);
+    padding-block: var(--space-sm);
+  }
+  .today b { font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; font-size: 0.86em; }
+  .today .dot {
+    width: 7px; height: 7px; border-radius: 50%;
+    background: var(--saffron); display: inline-block;
+    margin-right: 0.5em; translate: 0 -1px;
+  }
+
+  /* ---------- masthead ---------- */
+  header.mast { padding-block: clamp(40px, 7vw, 104px) var(--space-2xl); }
+  .eyebrow {
+    font-family: "Bricolage Grotesque", sans-serif;
+    font-size: var(--step--1); font-weight: 600;
+    letter-spacing: 0.16em; text-transform: uppercase;
+    color: var(--ink-soft);
+  }
+  h1 {
+    font-size: var(--step-4);
+    font-weight: 700;
+    font-stretch: 88%;
+    line-height: 0.86;
+    letter-spacing: -0.035em;
+    margin: var(--space-lg) 0 0;
+    text-wrap: balance;
+  }
+  h1 em { font-style: normal; color: var(--saffron); }
+  .standfirst {
+    font-size: var(--step-1);
+    line-height: 1.42;
+    max-width: 34ch;
+    margin: var(--space-xl) 0 0;
+    color: var(--ink);
+  }
+
+  /* ---------- offset image band ---------- */
+  .plates {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--space-md);
+    padding-bottom: clamp(48px, 8vw, 112px);
+  }
+  @media (min-width: 760px) {
+    .plates { grid-template-columns: 1.55fr 1fr; align-items: end; }
+    .plates figure:last-child { margin-bottom: clamp(24px, 5vw, 72px); }
+  }
+  figure { margin: 0; }
+  figure img {
+    display: block; width: 100%; height: auto;
+    object-fit: cover; aspect-ratio: 4 / 3;
+    background: var(--paper-deep);
+    filter: saturate(0.86) contrast(1.02);
+  }
+  .plates figure:first-child img { aspect-ratio: 16 / 10; }
+  figcaption {
+    font-size: var(--step--1); color: var(--ink-soft);
+    padding-top: var(--space-xs); max-width: 34ch;
+  }
+
+  /* ---------- sections ---------- */
+  section { padding-block: clamp(40px, 6vw, 88px); border-top: 1px solid var(--rule); }
+  .sec {
+    display: grid; gap: var(--space-lg);
+    grid-template-columns: 1fr;
+  }
+  @media (min-width: 860px) {
+    .sec { grid-template-columns: 200px minmax(0, 1fr); gap: clamp(32px, 6vw, 96px); }
+  }
+  .sec > .label {
+    font-family: "Bricolage Grotesque", sans-serif;
+    font-size: var(--step--1); font-weight: 600;
+    letter-spacing: 0.14em; text-transform: uppercase;
+    color: var(--ink-soft);
+    display: flex; gap: var(--space-sm); align-items: baseline;
+  }
+  .sec > .label .num { color: var(--saffron); font-weight: 700; }
+  h2 {
+    font-size: var(--step-2); font-weight: 600; font-stretch: 92%;
+    letter-spacing: -0.02em; line-height: 1.06;
+    margin: 0 0 var(--space-lg);
+  }
+  p { max-width: var(--measure); }
+  .lede { font-size: var(--step-1); line-height: 1.45; margin-top: 0; }
+
+  /* ---------- price list with leader dots ---------- */
+  .list { border-top: 1px solid var(--rule); margin-top: var(--space-lg); }
+  .item {
+    padding-block: var(--space-md);
+    border-bottom: 1px solid var(--rule);
+  }
+  .item .line {
+    display: grid; grid-template-columns: auto minmax(16px, 1fr) auto;
+    align-items: baseline; gap: var(--space-sm);
+  }
+  .item .name {
+    font-family: "Bricolage Grotesque", sans-serif;
+    font-size: var(--step-1); font-weight: 600; font-stretch: 94%;
+    letter-spacing: -0.012em;
+  }
+  .item .leader {
+    border-bottom: 1.5px dotted oklch(0.245 0.021 52 / 0.34);
+    translate: 0 -0.3em;
+  }
+  .item .price {
+    font-family: "Bricolage Grotesque", sans-serif;
+    font-variant-numeric: lining-nums tabular-nums;
+    font-size: var(--step-0); font-weight: 600; white-space: nowrap;
+  }
+  .item .price.quoted {
+    font-weight: 500; font-size: var(--step--1);
+    letter-spacing: 0.06em; text-transform: uppercase;
+    color: var(--saffron);
+  }
+  .item .desc { margin: var(--space-2xs) 0 0; color: var(--ink-soft); font-size: var(--step-0); }
+
+  /* ---------- facts ---------- */
+  dl.facts { margin: 0; display: grid; gap: var(--space-lg); }
+  @media (min-width: 620px) { dl.facts { grid-template-columns: repeat(auto-fit, minmax(198px, 1fr)); gap: var(--space-xl); } }
+  dl.facts dt {
+    font-family: "Bricolage Grotesque", sans-serif;
+    font-size: var(--step--1); font-weight: 600;
+    letter-spacing: 0.12em; text-transform: uppercase;
+    color: var(--ink-soft); padding-bottom: var(--space-xs);
+    border-bottom: 1px solid var(--rule);
+  }
+  dl.facts dd { margin: var(--space-sm) 0 0; }
+  .hours-row { display: flex; justify-content: space-between; gap: var(--space-md); padding-block: 2px; }
+  .hours-row span:last-child { font-variant-numeric: lining-nums tabular-nums; }
+
+  .tel {
+    font-family: "Bricolage Grotesque", sans-serif;
+    font-size: var(--step-1); font-weight: 600;
+    font-variant-numeric: lining-nums tabular-nums;
+    text-decoration: none; border-bottom: 2px solid var(--saffron);
+  }
+
+  footer {
+    border-top: 1px solid var(--rule);
+    padding-block: var(--space-2xl) var(--space-4xl);
+    color: var(--ink-soft); font-size: var(--step--1);
+    display: flex; flex-wrap: wrap; gap: var(--space-sm) var(--space-2xl);
+    justify-content: space-between;
+  }
+
+  /* ---------- entrance ---------- */
+  @media (prefers-reduced-motion: no-preference) {
+    .rise { animation: rise 900ms cubic-bezier(0.16, 1, 0.3, 1) backwards; }
+    .rise:nth-child(1) { animation-delay: 60ms; }
+    .rise:nth-child(2) { animation-delay: 140ms; }
+    .rise:nth-child(3) { animation-delay: 220ms; }
+    @keyframes rise { from { opacity: 0; transform: translateY(14px); } }
+  }
+</style>
+</head>
+<body>
+
+<!-- ─── LIVE DEMO: edit this one line mid-call, redeploy, ask again ─── -->
+<div class="today">
+  <div class="wrap">
+    <b><span class="dot"></span>Today</b>
+    <span>Saturday 8 August — open 10:00 to 22:00.</span>
+    <span>Last colour appointment taken at 19:30.</span>
+  </div>
+</div>
+
+<div class="wrap">
+  <header class="mast">
+    <p class="eyebrow rise">Al Wasl Road, Dubai — six chairs, since 2016</p>
+    <h1 class="rise">Ruwaya <em>Hair</em> Studio</h1>
+    <p class="standfirst rise">We take one client per chair per slot. Nobody is
+      left under a dryer while their stylist starts someone else.</p>
+  </header>
+
+  <div class="plates">
+    <figure>
+      <img src="https://images.pexels.com/photos/696287/pexels-photo-696287.jpeg?auto=compress&cs=tinysrgb&w=1400"
+           alt="A stylist finishing a client's hair at a salon chair" fetchpriority="high" decoding="async">
+      <figcaption>Chair three, mid-afternoon. Tuesday is the quietest day we have.</figcaption>
+    </figure>
+    <figure>
+      <img src="https://images.pexels.com/photos/2997775/pexels-photo-2997775.jpeg?auto=compress&cs=tinysrgb&w=1000"
+           alt="A woman checking her hair in a mirror" loading="lazy" decoding="async">
+      <figcaption>Finish and mirror check is part of every appointment, not an extra.</figcaption>
+    </figure>
+  </div>
+
+  <section>
+    <div class="sec">
+      <p class="label"><span class="num">01</span> Services</p>
+      <div>
+        <h2>What we do, and what it costs</h2>
+        <p class="lede">Every price below includes the wash and the finish. Two
+          services are quoted in person because guessing them over the phone would
+          be dishonest.</p>
+
+        <div class="list">
+          <div class="item">
+            <div class="line"><span class="name">Cut &amp; finish</span><span class="leader"></span><span class="price">AED 220</span></div>
+            <p class="desc">Consultation, wash, cut, blow-dry. About 75 minutes.</p>
+          </div>
+          <div class="item">
+            <div class="line"><span class="name">Blow-dry</span><span class="leader"></span><span class="price">AED 150</span></div>
+            <p class="desc">45 minutes. The only service we take walk-ins for.</p>
+          </div>
+          <div class="item">
+            <div class="line"><span class="name">Colour, full head</span><span class="leader"></span><span class="price">AED 640</span></div>
+            <p class="desc">Single-process permanent or demi-permanent colour, roots to ends.</p>
+          </div>
+          <div class="item">
+            <div class="line"><span class="name">Root touch-up</span><span class="leader"></span><span class="price">AED 320</span></div>
+            <p class="desc">Regrowth only, up to three centimetres.</p>
+          </div>
+          <div class="item">
+            <div class="line"><span class="name">Balayage</span><span class="leader"></span><span class="price">from AED 890</span></div>
+            <p class="desc">Half or full head. The final figure depends on how many rounds of lift your hair needs.</p>
+          </div>
+          <div class="item">
+            <div class="line"><span class="name">Keratin smoothing</span><span class="leader"></span><span class="price quoted">Quoted in person</span></div>
+            <p class="desc">Length, density and porosity all move the number. We won't quote this one blind.</p>
+          </div>
+          <div class="item">
+            <div class="line"><span class="name">Bridal hair</span><span class="leader"></span><span class="price quoted">Quoted in person</span></div>
+            <p class="desc">Includes one trial. Priced after the trial, never before.</p>
+          </div>
+          <div class="item">
+            <div class="line"><span class="name">Scalp treatment</span><span class="leader"></span><span class="price">AED 190</span></div>
+            <p class="desc">30 minutes, added to any other service or booked alone.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec">
+      <p class="label"><span class="num">02</span> Hours</p>
+      <div>
+        <h2>When we're open</h2>
+        <dl class="facts">
+          <div>
+            <dt>Regular week</dt>
+            <dd>
+              <div class="hours-row"><span>Saturday to Thursday</span><span>10:00 – 22:00</span></div>
+              <div class="hours-row"><span>Friday</span><span>14:00 – 22:00</span></div>
+            </dd>
+          </div>
+          <div>
+            <dt>Closures</dt>
+            <dd>Closed on the first day of Eid Al Fitr and the first day of Eid Al Adha.
+              We post any other closure on this page the week before.</dd>
+          </div>
+          <div>
+            <dt>Last appointment</dt>
+            <dd>Colour services stop being taken 2.5 hours before closing.
+              Cuts and blow-dries stop one hour before closing.</dd>
+          </div>
+        </dl>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec">
+      <p class="label"><span class="num">03</span> Booking</p>
+      <div>
+        <h2>How to book, and what happens if you can't make it</h2>
+        <p>Appointments are taken by phone or WhatsApp on the number below. Colour
+          and keratin services need a <strong>deposit of AED 100</strong>, which comes off
+          the final bill.</p>
+        <p>Move or cancel with at least <strong>48 hours' notice</strong> and the deposit
+          carries over to the new date. Less than 48 hours and we keep it — the chair
+          usually can't be refilled that late.</p>
+        <p>Blow-dries are walk-in if a chair is free. Everything else is by appointment.</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec">
+      <p class="label"><span class="num">04</span> Finding us</p>
+      <div>
+        <h2>One studio, on Al Wasl</h2>
+        <dl class="facts">
+          <div>
+            <dt>Address</dt>
+            <dd>Villa 12, Al Wasl Road<br>Umm Suqeim 2, Dubai<br>United Arab Emirates</dd>
+          </div>
+          <div>
+            <dt>Phone &amp; WhatsApp</dt>
+            <dd><a class="tel" href="tel:+97143852210">+971 4 385 2210</a></dd>
+          </div>
+          <div>
+            <dt>Languages spoken</dt>
+            <dd>English, Arabic, Russian and Tagalog. There is at least one Arabic
+              speaker on the floor every shift.</dd>
+          </div>
+        </dl>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <span>Ruwaya Hair Studio, Umm Suqeim 2, Dubai.</span>
+    <span>Prices on this page last updated 2 August 2026.</span>
+  </footer>
+</div>
+
+</body>
+</html>

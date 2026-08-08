@@ -1,0 +1,384 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Meridian Dental Rooms — Jumeirah 1, Dubai</title>
+<meta name="description" content="A three-surgery dental practice in Jumeirah 1. General dentistry, hygiene, Invisalign. Quotes given in writing after examination.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Faustina:ital,wght@0,300..700;1,300..600&family=Archivo:wdth,wght@62..125,300..700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    /* eucalyptus-tinted neutrals, hue 172 */
+    --paper:    oklch(0.984 0.006 172);
+    --surface:  oklch(0.952 0.011 170);
+    --ink:      oklch(0.262 0.023 173);
+    --ink-soft: oklch(0.508 0.021 173);
+    --rule:     oklch(0.262 0.023 173 / 0.14);
+    --rule-firm:oklch(0.262 0.023 173 / 0.32);
+    --accent:   oklch(0.508 0.098 172);
+
+    --step--1: clamp(0.84rem, 0.81rem + 0.13vw, 0.92rem);
+    --step-0:  clamp(1rem, 0.97rem + 0.18vw, 1.1rem);
+    --step-1:  clamp(1.28rem, 1.18rem + 0.5vw, 1.6rem);
+    --step-2:  clamp(1.7rem, 1.45rem + 1.2vw, 2.55rem);
+    --step-3:  clamp(2.4rem, 1.75rem + 3.1vw, 4.6rem);
+
+    --space-2xs: 4px;  --space-xs: 8px;  --space-sm: 12px;
+    --space-md: 16px;  --space-lg: 24px; --space-xl: 32px;
+    --space-2xl: 48px; --space-3xl: 64px; --space-4xl: 96px;
+
+    --gutter: clamp(20px, 5vw, 72px);
+  }
+
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: "Faustina", Georgia, serif;
+    font-size: var(--step-0);
+    line-height: 1.66;
+  }
+  ::selection { background: var(--accent); color: var(--paper); }
+
+  .grot, .kicker, th, .num, .status, nav, .meta, .quoted, footer {
+    font-family: "Archivo", ui-sans-serif, system-ui, sans-serif;
+  }
+
+  a { color: inherit; text-underline-offset: 3px; }
+  a:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 2px; }
+
+  .wrap { max-width: 1080px; margin-inline: auto; padding-inline: var(--gutter); }
+
+  /* ---------- this week strip : the line that changes ---------- */
+  .status {
+    background: var(--surface);
+    border-bottom: 1px solid var(--rule);
+    font-size: var(--step--1);
+    line-height: 1.55;
+  }
+  .status .wrap {
+    display: flex; flex-wrap: wrap; align-items: baseline;
+    gap: var(--space-xs) var(--space-lg); padding-block: var(--space-sm);
+  }
+  .status b {
+    font-weight: 600; text-transform: uppercase;
+    letter-spacing: 0.14em; font-size: 0.86em; color: var(--accent);
+  }
+  .status span { color: var(--ink-soft); }
+
+  /* ---------- masthead ---------- */
+  nav.top {
+    display: flex; justify-content: space-between; align-items: baseline;
+    gap: var(--space-md); padding-block: var(--space-lg);
+    font-size: var(--step--1); letter-spacing: 0.14em; text-transform: uppercase;
+    font-weight: 600; border-bottom: 1px solid var(--rule);
+  }
+  nav.top .tel { text-decoration: none; border-bottom: 1px solid var(--rule-firm); }
+
+  header.mast { padding-block: clamp(44px, 8vw, 112px) clamp(36px, 6vw, 72px); }
+  .kicker {
+    font-size: var(--step--1); font-weight: 600;
+    letter-spacing: 0.18em; text-transform: uppercase; color: var(--accent);
+  }
+  h1 {
+    font-family: "Faustina", serif;
+    font-size: var(--step-3); font-weight: 400;
+    line-height: 1.02; letter-spacing: -0.022em;
+    margin: var(--space-lg) 0 0; max-width: 17ch;
+    text-wrap: balance;
+  }
+  header.mast p.sub {
+    font-size: var(--step-1); line-height: 1.5;
+    max-width: 46ch; margin: var(--space-xl) 0 0; color: var(--ink-soft);
+  }
+
+  figure.wide { margin: 0 0 clamp(48px, 8vw, 104px); }
+  figure.wide img {
+    display: block; width: 100%; aspect-ratio: 21 / 9; object-fit: cover;
+    background: var(--surface); filter: saturate(0.55) brightness(1.04) contrast(0.96);
+  }
+  figure.wide figcaption {
+    font-family: "Archivo", sans-serif; font-size: var(--step--1);
+    color: var(--ink-soft); padding-top: var(--space-sm); max-width: 48ch;
+  }
+
+  /* ---------- sections on a strict two-column grid ---------- */
+  section { padding-block: clamp(40px, 6vw, 80px); border-top: 1px solid var(--rule); }
+  .grid { display: grid; gap: var(--space-lg); grid-template-columns: 1fr; }
+  @media (min-width: 880px) {
+    .grid { grid-template-columns: 17ch minmax(0, 1fr); gap: clamp(28px, 4vw, 60px); }
+  }
+  .grid > .side {
+    font-family: "Archivo", sans-serif;
+    font-size: var(--step--1); font-weight: 600;
+    letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-soft);
+  }
+  h2 {
+    font-family: "Faustina", serif; font-weight: 400;
+    font-size: var(--step-2); line-height: 1.08; letter-spacing: -0.018em;
+    margin: 0 0 var(--space-lg); max-width: 20ch; text-wrap: balance;
+  }
+  p { max-width: 66ch; }
+  p:last-child { margin-bottom: 0; }
+  .note-em { font-style: italic; }
+
+  /* ---------- treatments : numbered rows, no prices ---------- */
+  .treatments { margin-top: var(--space-xl); border-top: 1px solid var(--rule-firm); }
+  .tr {
+    display: grid; align-items: baseline;
+    grid-template-columns: 2.5ch minmax(0, 1fr);
+    gap: var(--space-2xs) var(--space-md);
+    padding-block: var(--space-md);
+    border-bottom: 1px solid var(--rule);
+  }
+  @media (min-width: 700px) {
+    .tr { grid-template-columns: 2.5ch minmax(0, 1fr) 12ch 19ch; }
+  }
+  .tr .num {
+    font-size: var(--step--1); font-weight: 500;
+    font-variant-numeric: tabular-nums; color: var(--ink-soft);
+    grid-row: 1;
+  }
+  .tr h3 {
+    margin: 0; font-family: "Faustina", serif; font-weight: 500;
+    font-size: var(--step-1); line-height: 1.25; letter-spacing: -0.01em;
+  }
+  .tr .meta, .tr .quoted {
+    font-size: var(--step--1); color: var(--ink-soft);
+    font-variant-numeric: tabular-nums;
+  }
+  .tr .quoted { letter-spacing: 0.05em; text-transform: uppercase; font-weight: 600; color: var(--accent); text-wrap: balance; }
+  @media (max-width: 699px) {
+    .tr .meta, .tr .quoted { grid-column: 2; }
+  }
+  .tr p.detail { grid-column: 2 / -1; margin: var(--space-2xs) 0 0; color: var(--ink-soft); max-width: 60ch; }
+
+  /* ---------- hours ---------- */
+  table.hours { border-collapse: collapse; width: 100%; max-width: 52ch; margin-top: var(--space-md); }
+  table.hours th, table.hours td {
+    padding: var(--space-sm) 0; border-bottom: 1px solid var(--rule);
+    text-align: left; font-weight: 400;
+  }
+  table.hours th { font-family: "Archivo", sans-serif; font-size: var(--step--1); font-weight: 500; letter-spacing: 0.04em; }
+  table.hours td { text-align: right; font-variant-numeric: tabular-nums; }
+  table.hours tr:last-child th, table.hours tr:last-child td { border-bottom: none; }
+
+  dl.plain { margin: var(--space-lg) 0 0; display: grid; gap: var(--space-lg); }
+  @media (min-width: 640px) { dl.plain { grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: var(--space-xl); } }
+  dl.plain dt {
+    font-family: "Archivo", sans-serif; font-size: var(--step--1);
+    font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase;
+    color: var(--ink-soft); padding-bottom: var(--space-xs); border-bottom: 1px solid var(--rule);
+  }
+  dl.plain dd { margin: var(--space-sm) 0 0; }
+
+  .tel-big {
+    font-family: "Archivo", sans-serif; font-weight: 600;
+    font-size: var(--step-1); font-variant-numeric: tabular-nums;
+    text-decoration: none; border-bottom: 2px solid var(--accent);
+  }
+
+  footer {
+    border-top: 1px solid var(--rule-firm);
+    padding-block: var(--space-2xl) var(--space-4xl);
+    font-size: var(--step--1); color: var(--ink-soft);
+    display: flex; flex-wrap: wrap; gap: var(--space-sm) var(--space-2xl); justify-content: space-between;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .rise { animation: rise 850ms cubic-bezier(0.16, 1, 0.3, 1) backwards; }
+    .rise:nth-child(1) { animation-delay: 60ms; }
+    .rise:nth-child(2) { animation-delay: 150ms; }
+    .rise:nth-child(3) { animation-delay: 240ms; }
+    @keyframes rise { from { opacity: 0; transform: translateY(12px); } }
+  }
+</style>
+</head>
+<body>
+
+<!-- ─── LIVE DEMO: edit this one line mid-call, redeploy, ask again ─── -->
+<div class="status">
+  <div class="wrap">
+    <b>This week</b>
+    <span>Dr Haddad is away until Wednesday 12 August. Hygiene appointments are running as normal.</span>
+  </div>
+</div>
+
+<div class="wrap">
+  <nav class="top">
+    <span>Meridian Dental Rooms</span>
+    <a class="tel" href="tel:+97143441780">+971 4 344 1780</a>
+  </nav>
+
+  <header class="mast">
+    <p class="kicker rise">Jumeirah 1, Dubai — three surgeries</p>
+    <h1 class="rise">Careful dentistry, and a written quote before anything starts</h1>
+    <p class="sub rise">General dentistry, hygiene and Invisalign for adults and
+      children over six. We are a small practice and we keep the same dentist with
+      you from the first examination onward.</p>
+  </header>
+
+  <figure class="wide">
+    <img src="https://images.pexels.com/photos/30902075/pexels-photo-30902075.jpeg?auto=compress&cs=tinysrgb&w=2000"
+         alt="A bright, modern dental surgery" fetchpriority="high" decoding="async">
+    <figcaption>Surgery two, which is the one with the window.</figcaption>
+  </figure>
+
+  <section>
+    <div class="grid">
+      <p class="side">01 — Treatments</p>
+      <div>
+        <h2>What we treat</h2>
+        <p>We do not publish treatment prices, and we would rather explain why than
+          leave you guessing. The same treatment can differ by several thousand
+          dirhams depending on what an X-ray shows, and a figure quoted over the
+          phone would be a number we could not honour.</p>
+        <p>Every patient gets a written treatment plan with itemised costs after the
+          first examination. Nothing is started before you have signed it.
+          <span class="note-em">If you would like an estimate before booking, the practice
+          manager will call you back once she has seen your X-rays.</span></p>
+
+        <div class="treatments">
+          <div class="tr">
+            <span class="num">01</span>
+            <h3>Examination and X-rays</h3>
+            <span class="meta">45 minutes</span>
+            <span class="quoted">Quoted after exam</span>
+            <p class="detail">Full mouth assessment, two bitewing X-rays, and a written plan.
+              New patients are always given the longer slot.</p>
+          </div>
+          <div class="tr">
+            <span class="num">02</span>
+            <h3>Hygiene, scale and polish</h3>
+            <span class="meta">30 minutes</span>
+            <span class="quoted">Quoted after exam</span>
+            <p class="detail">With one of two hygienists. Deep cleaning below the gum line is
+              a separate, longer appointment.</p>
+          </div>
+          <div class="tr">
+            <span class="num">03</span>
+            <h3>Composite filling</h3>
+            <span class="meta">30–60 minutes</span>
+            <span class="quoted">Quoted after exam</span>
+            <p class="detail">Tooth-coloured, placed in a single visit. Cost depends on the
+              number of surfaces involved.</p>
+          </div>
+          <div class="tr">
+            <span class="num">04</span>
+            <h3>Root canal treatment</h3>
+            <span class="meta">Two visits</span>
+            <span class="quoted">Quoted after exam</span>
+            <p class="detail">Front teeth and molars are very different pieces of work, which
+              is the clearest example of why we don't publish a figure.</p>
+          </div>
+          <div class="tr">
+            <span class="num">05</span>
+            <h3>Crowns and onlays</h3>
+            <span class="meta">Two visits</span>
+            <span class="quoted">Quoted after exam</span>
+            <p class="detail">Milled by a laboratory in Dubai; usually two weeks between
+              the preparation and the fit.</p>
+          </div>
+          <div class="tr">
+            <span class="num">06</span>
+            <h3>Invisalign</h3>
+            <span class="meta">6–18 months</span>
+            <span class="quoted">Quoted after scan</span>
+            <p class="detail">Includes a digital scan, the aligners, and every review
+              appointment until the case is finished.</p>
+          </div>
+          <div class="tr">
+            <span class="num">07</span>
+            <h3>Teeth whitening, take-home</h3>
+            <span class="meta">Two appointments</span>
+            <span class="quoted">Quoted after exam</span>
+            <p class="detail">Custom trays and gel. We don't offer in-chair laser whitening.</p>
+          </div>
+          <div class="tr">
+            <span class="num">08</span>
+            <h3>Children's check-up</h3>
+            <span class="meta">30 minutes</span>
+            <span class="quoted">Quoted after exam</span>
+            <p class="detail">From age six. Younger children are referred to a paediatric
+              specialist we work with in Al Safa.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="grid">
+      <p class="side">02 — Opening hours</p>
+      <div>
+        <h2>When the practice is open</h2>
+        <table class="hours">
+          <tbody>
+            <tr><th scope="row">Saturday to Wednesday</th><td>09:00 – 19:00</td></tr>
+            <tr><th scope="row">Thursday</th><td>09:00 – 15:00</td></tr>
+            <tr><th scope="row">Friday</th><td>Closed</td></tr>
+          </tbody>
+        </table>
+        <p style="margin-top: var(--space-lg)">Two emergency slots are held every morning
+          between 09:00 and 10:00 and are given out on the day, first come. Phone lines
+          open thirty minutes before the practice does.</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="grid">
+      <p class="side">03 — Appointments</p>
+      <div>
+        <h2>Booking and cancellations</h2>
+        <p>Appointments are made by phone during opening hours. New patients are booked
+          into a 45-minute first visit, so please say it is your first time when you call.</p>
+        <p>We ask for <strong>24 hours' notice</strong> to change or cancel. A missed
+          appointment without notice is charged at the value of the reserved chair time,
+          and that figure is on your treatment plan before you agree to it.</p>
+        <p>Insurance: we are in network with several of the major UAE insurers, but the
+          list changes and cover varies by plan. Please call with your card details and
+          the practice manager will confirm before you attend.</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="grid">
+      <p class="side">04 — Practice</p>
+      <div>
+        <h2>Where to find us</h2>
+        <dl class="plain">
+          <div>
+            <dt>Address</dt>
+            <dd>Villa 46, Street 10b<br>Jumeirah 1, Dubai<br>United Arab Emirates</dd>
+          </div>
+          <div>
+            <dt>Telephone</dt>
+            <dd><a class="tel-big" href="tel:+97143441780">+971 4 344 1780</a></dd>
+          </div>
+          <div>
+            <dt>Languages spoken</dt>
+            <dd>English, Arabic, Hindi, Malayalam and Tagalog.</dd>
+          </div>
+          <div>
+            <dt>Licence</dt>
+            <dd>Dubai Health Authority facility licence DHA-F-0114927.</dd>
+          </div>
+        </dl>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <span>Meridian Dental Rooms, Jumeirah 1, Dubai.</span>
+    <span>Page last reviewed 30 July 2026.</span>
+  </footer>
+</div>
+
+</body>
+</html>
