@@ -152,7 +152,9 @@ function PhoneInner({ agentId }: { agentId: string }) {
       turnsRef.current = [...turnsRef.current, { role: source === "user" ? "user" : "agent", message }];
       setTurns(turnsRef.current);
       const id = callRef.current?.id;
-      if (id) void patch({ id, state: "live", transcript: turnsRef.current });
+      // Transcript only. A turn that lands after the hang-up — and one always
+      // does — must not put the line back on "live" behind the disconnect.
+      if (id) void patch({ id, transcript: turnsRef.current });
     },
     onDisconnect: () => {
       const id = callRef.current?.id;
