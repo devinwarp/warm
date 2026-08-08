@@ -66,6 +66,35 @@ describe("searchPlaces", () => {
     vi.restoreAllMocks();
   });
 
+  it("folds the area into the search string rather than using locationQuery", async () => {
+    // locationQuery resolves colloquial areas to a 0km² point-of-interest
+    // polygon and silently returns nothing. Regression guard — see lib/places.ts.
+    const fetchMock = vi
+      .spyOn(globalThis, "fetch")
+      .mockResolvedValue(new Response(JSON.stringify(fixture), { status: 200 }));
+
+    await searchPlaces("Lebanese restaurant", { area: "JLT Dubai" });
+
+    const [, init] = fetchMock.mock.calls[0] as [unknown, RequestInit | undefined];
+    const sent = JSON.parse(String(init?.body)) as Record<string, unknown>;
+
+    expect(sent.searchStringsArray).toEqual(["Lebanese restaurant in JLT Dubai"]);
+    expect(sent).not.toHaveProperty("locationQuery");
+  });
+
+  it("uses the bare query when no area is given", async () => {
+    const fetchMock = vi
+      .spyOn(globalThis, "fetch")
+      .mockResolvedValue(new Response(JSON.stringify(fixture), { status: 200 }));
+
+    await searchPlaces("Qamar Table");
+
+    const [, init] = fetchMock.mock.calls[0] as [unknown, RequestInit | undefined];
+    expect((JSON.parse(String(init?.body)) as Record<string, unknown>).searchStringsArray).toEqual([
+      "Qamar Table",
+    ]);
+  });
+
   it("sends the query and limit to the actor and returns normalized places", async () => {
     const fetchMock = vi
       .spyOn(globalThis, "fetch")
@@ -83,8 +112,7 @@ describe("searchPlaces", () => {
     expect(String(url)).toContain("compass~crawler-google-places");
     expect(String(url)).toContain("token=test-token");
     expect(JSON.parse(String(init?.body))).toMatchObject({
-      searchStringsArray: ["Lebanese restaurant"],
-      locationQuery: "JLT Dubai",
+      searchStringsArray: ["Lebanese restaurant in JLT Dubai"],
       maxCrawledPlacesPerSearch: 6,
     });
   });

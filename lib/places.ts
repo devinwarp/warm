@@ -74,8 +74,15 @@ export async function searchPlaces(
       signal,
       headers: { "content-type": "application/json" },
       body: JSON.stringify({
-        searchStringsArray: [query],
-        ...(area ? { locationQuery: area } : {}),
+        // The area goes in the search string, NOT in locationQuery.
+        //
+        // locationQuery runs the string through Nominatim and scans only the
+        // resulting polygon. Colloquial area names ("Jumeirah Lake Towers
+        // Dubai") resolve to a point of interest — a hotel, in that case —
+        // whose polygon is 0km², so every result is discarded as
+        // "outOfLocation" and the actor returns an empty list after 12s.
+        // Google's own text search handles area names the way a person would.
+        searchStringsArray: [area ? `${query} in ${area}` : query],
         // The single biggest latency lever on this actor. Six is enough to
         // fill a grid and short enough to finish inside a conversation.
         maxCrawledPlacesPerSearch: limit,
