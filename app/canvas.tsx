@@ -120,6 +120,28 @@ function CanvasInner({ agentId }: { agentId: string }) {
     }
   });
 
+  useConversationClientTool("resolve_area", async (args) => {
+    const locality = text(args, "locality");
+    if (!locality) return "didn't catch the area — ask them where they're looking";
+
+    try {
+      const { area } = await post<{ area: { label: string; lat: number; lng: number } | null }>(
+        "/api/geocode",
+        { query: locality },
+      );
+      if (!area) return `couldn't place ${locality} on a map — just use it as typed and carry on`;
+
+      dispatch({
+        type: "add",
+        card: { id: id(), kind: "area", area: locality, lat: area.lat, lng: area.lng, confirmed: false },
+      });
+      return `showing ${area.label} on screen — ask them to tap it if that's the right area`;
+    } catch {
+      // A map is a nicety. Losing it must not stop the visitor getting a table.
+      return `couldn't place ${locality} on a map — just use it as typed and carry on`;
+    }
+  });
+
   const onChoose = useCallback(
     (cardId: string, index: number) => {
       const card = cardsRef.current.find((c) => c.id === cardId);

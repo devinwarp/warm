@@ -78,6 +78,31 @@ export function CardView({
     case "factsheet":
       return <FactSheetCard sheet={card.sheet} lastRead={{ at: card.sheet.crawled_at, live: false }} />;
 
+    case "area": {
+      const d = 0.035;
+      const bbox = [card.lng - d, card.lat - d, card.lng + d, card.lat + d].join("%2C");
+      return (
+        <Shell label="Is this the right area?">
+          <iframe
+            title={`Map of ${card.area}`}
+            src={`https://www.openstreetmap.org/export/embed.html?bbox=${bbox}&marker=${card.lat}%2C${card.lng}`}
+            className="h-56 w-full rounded-md border border-line"
+            loading="lazy"
+          />
+          <button
+            type="button"
+            onClick={() => onChoose(card.id, 0)}
+            aria-pressed={card.confirmed}
+            className={`self-start rounded-md border px-4 py-2 text-sm transition-colors ${
+              card.confirmed ? "border-lamp bg-lamp/10 text-lamp" : "border-line hover:border-lamp/60"
+            }`}
+          >
+            {card.confirmed ? `${card.area} — confirmed` : `Yes, ${card.area}`}
+          </button>
+        </Shell>
+      );
+    }
+
     case "fault":
       return (
         <Shell label="That didn't work">
