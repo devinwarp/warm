@@ -1,7 +1,11 @@
 "use client";
 
-import { ConversationProvider, useConversation } from "@elevenlabs/react";
-import { useCallback, useState } from "react";
+import { ConversationProvider, useConversation, useConversationClientTool } from "@elevenlabs/react";
+import { useCallback, useReducer, useRef, useState } from "react";
+import { canvasReducer, type Card } from "@/lib/canvas";
+import { FactSheetSchema } from "@/lib/factsheet";
+import type { Place } from "@/lib/places";
+import { CardView } from "./cards";
 
 /**
  * The voice canvas. The visitor talks; the agent paints cards through client
@@ -10,15 +14,128 @@ import { useCallback, useState } from "react";
  *
  * useConversation and useConversationClientTool both resolve against the
  * nearest ConversationProvider, so the provider has to sit above the component
- * that registers the tools — hence the split.
+ * that registers the tools — hence the split at the bottom of this file.
  */
+
+/**
+ * Tool arguments arrive as an untyped bag: a language model produced them from
+ * speech, so the SDK types them Record<string, unknown> and it is right to.
+ * Read them through these two helpers and guard the result — anything that
+ * actually matters is re-validated server-side (lib/booking.ts).
+ */
+function text(args: Record<string, unknown>, key: string): string {
+  const value = args[key];
+  return typeof value === "string" ? value.trim() : "";
+}
+
+/** -1 when the model sent something that isn't an index. Never NaN. */
+function index(args: Record<string, unknown>, key: string): number {
+  const value = Number(args[key]);
+  return Number.isInteger(value) && value >= 0 ? value : -1;
+}
+
+function id(): string {
+  return crypto.randomUUID();
+}
+
+async function post<T>(path: string, body: unknown): Promise<T> {
+  const response = await fetch(path, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify(body),
+  });
+  const parsed = (await response.json()) as T & { error?: string };
+  if (!response.ok) throw new Error(parsed.error ?? `${path} failed (${response.status})`);
+  return parsed;
+}
 
 function CanvasInner({ agentId }: { agentId: string }) {
   const [live, setLive] = useState(false);
+  const [cards, dispatch] = useReducer(canvasReducer, [] as Card[]);
+
+  // Tools need to read the latest cards without re-registering on every paint.
+  const cardsRef = useRef<Card[]>([]);
+  cardsRef.current = cards;
+
   const conversation = useConversation({
     onConnect: () => setLive(true),
     onDisconnect: () => setLive(false),
   });
+
+  const fault = useCallback((text: string) => {
+    dispatch({ type: "add", card: { id: id(), kind: "fault", text } });
+  }, []);
+
+  /** The last card of a kind — how a tool finds what it just painted. */
+  const latest = useCallback(<K extends Card["kind"]>(kind: K) => {
+    for (let i = cardsRef.current.length - 1; i >= 0; i--) {
+      const card = cardsRef.current[i];
+      if (card?.kind === kind) return card as Extract<Card, { kind: K }>;
+    }
+    return null;
+  }, []);
+
+  useConversationClientTool("find_business", async (args) => {
+    const name = text(args, "name");
+    if (!name) return "didn't catch the business name — ask them to say it again";
+
+    try {
+      const { places } = await post<{ places: Place[] }>("/api/places", {
+        query: name,
+        area: text(args, "locality") || undefined,
+        limit: 3,
+      });
+      const top = places[0];
+      if (!top) return "no matches — ask them for a different name or area";
+
+      dispatch({ type: "add", card: { id: id(), kind: "candidates", places, chosen: null } });
+
+      return `found ${places.length} — top is ${top.name}, ${top.address}${
+        top.website ? `, ${top.website}` : ", but no website to read"
+      }. Ask them if that's the one.`;
+    } catch (error) {
+      fault(error instanceof Error ? error.message : "the search failed");
+      return "the search failed — tell them and offer to try again";
+    }
+  });
+
+  useConversationClientTool("confirm_business", async (args) => {
+    const pick = index(args, "index");
+    const candidates = latest("candidates");
+    const place = candidates?.places[pick];
+    if (!candidates || !place) return "that wasn't one of the options — ask them which one they meant";
+    if (!place.website) return `${place.name} has no website to read — say so`;
+
+    dispatch({ type: "choose", id: candidates.id, index: pick });
+
+    try {
+      const sheet = FactSheetSchema.parse(await post("/api/crawl", { url: place.website }));
+      dispatch({ type: "add", card: { id: id(), kind: "factsheet", sheet } });
+      return `read ${sheet.business_name}: ${sheet.one_line}. ${sheet.services.length} services, hours ${
+        sheet.hours || "not published"
+      }. Answer their questions from this and nothing else.`;
+    } catch (error) {
+      fault(error instanceof Error ? error.message : "the crawl failed");
+      return "couldn't read their site — tell them plainly and offer to try another";
+    }
+  });
+
+  const onChoose = useCallback(
+    (cardId: string, index: number) => {
+      const card = cardsRef.current.find((c) => c.id === cardId);
+      if (!card) return;
+      dispatch({ type: "choose", id: cardId, index });
+
+      const what =
+        card.kind === "candidates" || card.kind === "restaurants"
+          ? card.places[index]?.name
+          : card.kind === "area"
+            ? card.area
+            : null;
+      if (what) conversation.sendContextualUpdate(`The visitor tapped ${what} on screen.`);
+    },
+    [conversation],
+  );
 
   const start = useCallback(async () => {
     await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -35,7 +152,7 @@ function CanvasInner({ agentId }: { agentId: string }) {
         </div>
       </header>
 
-      {!live && (
+      {!live && cards.length === 0 && (
         <section className="flex flex-col gap-4">
           <p className="max-w-md text-mute">
             Tell it a business you want to know about, or a table you want booked.
@@ -50,6 +167,12 @@ function CanvasInner({ agentId }: { agentId: string }) {
           </button>
         </section>
       )}
+
+      <div className="flex flex-col gap-6">
+        {cards.map((card) => (
+          <CardView key={card.id} card={card} onChoose={onChoose} />
+        ))}
+      </div>
     </main>
   );
 }
