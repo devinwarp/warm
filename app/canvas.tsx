@@ -36,7 +36,7 @@ const OPENERS = [
  * Tool arguments arrive as an untyped bag: a language model produced them from
  * speech, so the SDK types them Record<string, unknown> and it is right to.
  * Read them through these two helpers and guard the result — anything that
- * actually matters is re-validated server-side (lib/booking.ts).
+ * actually matters is re-validated server-side (lib/ring.ts).
  */
 function text(args: Record<string, unknown>, key: string): string {
   const value = args[key];
@@ -262,8 +262,8 @@ function CanvasInner({ agentId }: { agentId: string }) {
 
     const cardId = id();
     try {
-      // No Twilio on this path: /api/ring makes the phone at /phone ring, and a
-      // human answers as the restaurant. lib/ring.ts explains why.
+      // Every call goes here. There is no Twilio: /api/ring rings the phone at
+      // /phone, and a human answers it as the restaurant. See lib/ring.ts.
       const { call_id } = await post<{ call_id: string }>("/api/ring", {
         restaurant_name: place.name,
         party_size: partySize,

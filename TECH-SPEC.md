@@ -103,7 +103,7 @@ resolve_area ──▶ POST /api/geocode ──▶ Nominatim ──▶ map card
 search_restaurants ──▶ POST /api/places ──▶ restaurant grid
    │
    ▼  agent collects party size, time, name, number by voice
-book_table ──▶ POST /api/ring ──▶ in-memory line ──▶ /phone rings
+book_table ──▶ POST /api/ring ──▶ the line (Supabase) ──▶ /phone rings
                                                        │
                               human presses "Take the desk"
                                                        ▼
@@ -184,7 +184,6 @@ given a party size, the agent asks. **No form ever appears.**
 | `POST /api/places` | Apify `compass~crawler-google-places`, run-sync. Cached. |
 | `POST /api/geocode` | Nominatim. Never throws — a failed geocode skips the confirm step. |
 | `POST\|GET\|PATCH /api/ring` | The demo line: ring, poll, answer/transcribe. |
-| `POST\|GET /api/book` | The real Twilio leg, allowlist-guarded. |
 | `GET /demo/[slug]` | Three fixture businesses, served with a mutable status line. |
 | `GET /api/demo-status` | Stage control: flip a fixture site's status line from a phone. |
 
@@ -201,19 +200,19 @@ speakable, because the agent reads it.
 
 Next.js 16 App Router on Vercel · React 19 · TypeScript strict, no `any` ·
 zod 4 · `@elevenlabs/react` (`useConversation`, `useConversationClientTool`) ·
-Supabase Postgres, three tables · OpenRouter, default
+Supabase Postgres, four tables · OpenRouter, default
 `google/gemini-3.1-flash-lite`, swappable by env · context.dev REST ·
 Apify · Nominatim. Both API clients are raw `fetch`, no SDK.
 
 ### What is not built, so the diagrams aren't read as more than they are
 
-- **The `/phone` leg does not touch the PSTN.** `book_table` posts to
-  `/api/ring`, which sets one module-level variable; the page at `/phone` polls
-  it and rings. A human plays the restaurant. The real Twilio path
-  (`/api/book` → ElevenLabs outbound-call) is built, tested, and allowlisted, but
-  the demo does not use it — no number is provisioned.
-- **`/api/ring` holds one call in process memory.** One line, because a phone has
-  one line. Two server instances would each keep their own.
+- **No leg of this touches the PSTN.** `book_table` posts to `/api/ring`, which
+  writes one row; the page at `/phone` polls it and rings. A human plays the
+  restaurant. The outbound Twilio path was built and then deleted rather than
+  left switched off — with no number provisioned it was a second path that could
+  only fail, and deleting it is a stronger guarantee than an empty allowlist.
+- **`/api/ring` holds one call.** One line, because a phone has one line. A
+  second caller takes the line from the first.
 - **The crawl response does not stream.** `POST /api/crawl` returns one JSON
   document. The console's progress log is client-side stage events plus an
   elapsed-second counter; `readEventStream` is a forward-compatible NDJSON branch
@@ -347,16 +346,17 @@ provisioned numbers at 8:30. Elapsed offsets, not wall clock.
 **1. The pivot reused the core instead of replacing it.** The canvas is new
 surface over machinery that already worked: `/api/crawl`, `/api/lookup`,
 `factsheetToVariables()` and `FactSheetCard` are untouched. The Dial console was
-**moved to `/console`, not deleted** — which is also what let a booking agent
-call our own receptionist with no third agent written.
+**moved to `/console`, not deleted** — it is the receptionist demo in its own
+right, and it was what a booking agent would have called had there been a number.
 
 **2. A human answers the phone instead of Twilio** (the newest decision, and the
 sharpest). A provisioned UAE number is a regulatory unknown with a hard
 dependency on a third party answering on a Saturday, and an international number
 on venue wifi with a phone on speaker is a failure class we chose not to have on
-stage. `/api/ring` is one module-level variable and a polling page. It
-demonstrates every claim the number would, and the Twilio path stays in the repo
-for when there is a number to dial.
+stage. `/api/ring` is one Supabase row and a polling page, and it demonstrates
+every claim the number would. The outbound path was then deleted, not disabled:
+an endpoint that turns model output into a phone call is a robodialer with extra
+steps, and the safest version of it is the one that isn't in the repo.
 
 **3. Browser widget over inbound number** (`docs/adr/0001`), for the same reason,
 made at hour one.
@@ -400,14 +400,13 @@ because an empty string reads to a model as permission to improvise; and
 `render()` **throws** on an unfilled placeholder rather than substituting empty,
 because the alternative surfaces as `"{{hours}}"` spoken aloud on stage.
 
-**The allowlist.** `/api/book` rejects any number outside `DEMO_BOOKING_NUMBERS`,
-server-side, before any outbound request. An unset or empty allowlist means
-nothing may be dialled — deliberate, not a bug. The arguments reaching that
-endpoint come from a language model parsing speech from whoever is holding the
-microphone on a public URL; without the allowlist it is a robodialer.
-`lib/booking.test.ts` covers the off-list and unset-list cases.
+**Nothing dials.** The booking arguments come from a language model parsing
+speech from whoever is holding the microphone on a public URL. There is no
+endpoint that turns them into a phone call: `/api/ring` writes a row and `/phone`
+reads it. The payload is still validated server-side in `lib/ring.ts`, because it
+becomes what the Booker says out loud.
 
-**106 unit tests across 15 files.** `typecheck` and `test` run in CI on every
+**95 unit tests across 14 files.** `typecheck` and `test` run in CI on every
 push and need no API keys. `npm run smoke` is an end-to-end Playwright pass whose
 voice leg self-skips when no agent id is configured.
 
@@ -417,14 +416,13 @@ voice leg self-skips when no agent id is configured.
 
 Not more features. The four things that make this a product rather than a demo.
 
-**1. A real phone leg on both ends.** `/api/ring` becomes Twilio inbound: the
-business's own number forwards to the Dial agent, and `/api/book` dials out for
-real. The code path exists and is tested; what's missing is provisioning and
-per-tenant number mapping. This is also where `/api/ring`'s module-level call
-moves into Supabase — the ceiling is flagged at the call site.
+**1. A real phone leg on both ends.** `/api/ring` becomes Twilio inbound — the
+business's own number forwards to the Dial agent — and the outbound leg comes
+back behind a number allowlist. What's missing is provisioning, per-tenant number
+mapping, and the consent story for calling a business that never opted in.
 
 **2. Multi-tenant provisioning.** Today one agent per role swaps knowledge per
-conversation. v2 is agent-per-tenant, RLS on all three tables, and the
+conversation. v2 is agent-per-tenant, RLS on all four tables, and the
 service-role Supabase client replaced. That ceiling is flagged in-code too.
 
 **3. A freshness policy per fact type.** The split is currently binary — cached
@@ -447,7 +445,7 @@ catch.
 
 **Known ceilings are marked in-code.** Every deliberate shortcut carries a
 `ponytail:` comment naming the ceiling and the upgrade path — the single
-in-memory phone line, the service-role Supabase client, the module-level
+single unlocked phone line, the service-role Supabase client, the module-level
 `lastFetchedAt` that only sees lookups landing on one serverless instance,
 keyword routing, the never-throwing geocoder, the substring grader, and the
 writing `GET` at `/api/demo-status` that exists so a stage flip is one tap from a

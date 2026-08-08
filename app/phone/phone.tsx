@@ -238,7 +238,7 @@ function PhoneInner({ agentId }: { agentId: string }) {
     conversation.startSession({
       agentId,
       connectionType: "webrtc",
-      // The same injection the Twilio leg uses (docs/adr/0002): the Booker
+      // The same injection the Fact Sheet uses (docs/adr/0002): the Booker
       // knows the whole booking before you say hello.
       dynamicVariables: {
         restaurant_name: call.restaurant_name,

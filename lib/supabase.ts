@@ -10,6 +10,7 @@ import type { Place } from "./places";
 type Row = { url: string; data: FactSheet; crawled_at: string };
 type PlacesRow = { key: string; data: Place[]; fetched_at: string };
 type DemoStatusRow = { slug: string; preset: string; updated_at: string };
+type CallsRow = { line: string; data: unknown; rang_at: string };
 
 /** Mirrors supabase/migrations/0001_factsheets.sql. One table, hand-written. */
 type Database = {
@@ -31,6 +32,12 @@ type Database = {
         Row: DemoStatusRow;
         Insert: Omit<DemoStatusRow, "updated_at"> & { updated_at?: string };
         Update: Partial<DemoStatusRow>;
+        Relationships: [];
+      };
+      calls: {
+        Row: CallsRow;
+        Insert: Omit<CallsRow, "rang_at"> & { rang_at?: string };
+        Update: Partial<CallsRow>;
         Relationships: [];
       };
     };
@@ -87,6 +94,35 @@ export async function getCachedPlaces(key: string): Promise<Place[] | null> {
 export async function cachePlaces(key: string, places: Place[]): Promise<void> {
   const { error } = await db().from("places").upsert({ key, data: places });
   if (error) throw new Error(`places cache write failed: ${error.message}`);
+}
+
+/** True when Supabase is wired up at all — see the fallback in lib/ring.ts. */
+export function haveSupabase(): boolean {
+  return Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY);
+}
+
+/**
+ * The phone line (supabase/migrations/0004_calls.sql). One row, one call.
+ *
+ * The read never throws — a phone that 500s mid-poll stops ringing, and a
+ * missed poll is meant to be survivable. The write does throw, loudly: if the
+ * line can't be written, no call is coming and you want to know at the first
+ * booking, not during the demo.
+ */
+export async function getCall(): Promise<unknown | null> {
+  try {
+    const { data } = await db().from("calls").select("data").eq("line", "demo").maybeSingle();
+    return data?.data ?? null;
+  } catch {
+    return null;
+  }
+}
+
+export async function putCall(call: unknown): Promise<void> {
+  const { error } = await db()
+    .from("calls")
+    .upsert({ line: "demo", data: call, rang_at: new Date().toISOString() });
+  if (error) throw new Error(`the line is unreachable: ${error.message}`);
 }
 
 /**

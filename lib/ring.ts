@@ -1,19 +1,21 @@
 import { z } from "zod";
+import { getCall, haveSupabase, putCall } from "./supabase";
 
 /**
- * The demo phone line.
+ * The demo phone line. Every call goes here — there is no Twilio.
  *
- * There is no Twilio here. The Concierge's `book_table` posts the booking to
- * /api/ring instead of dialling, and the phone at /phone picks it up, rings,
- * and hands the human the Booker agent over WebRTC. The restaurant is whoever
- * is holding that page.
+ * The Concierge's `book_table` posts the booking to /api/ring, and the phone
+ * at /phone picks it up, rings, and hands the human the Booker agent over
+ * WebRTC. The restaurant is whoever is holding that page. Nothing on this path
+ * reaches the PSTN, so there is no number to allowlist.
  *
- * Nothing reaches the PSTN on this path, which is why there is no number
- * allowlist — the one in lib/booking.ts exists because that path really dials.
+ * One call at a time, because a phone has one line. It lives in Supabase when
+ * that is configured: the ring and the answer are separate requests, and on
+ * Vercel they are not guaranteed to hit the same server instance. In memory
+ * they would sometimes be two different phones, one of which never rings.
  *
- * ponytail: one module-level call, because a phone has one line. Two server
- * instances would each keep their own, so move this to Supabase the day the
- * demo runs behind more than one.
+ * ponytail: read-modify-write with no locking. One phone, one caller — if two
+ * ever answer at once, the last write wins and that is fine for a demo.
  */
 
 const RingSchema = z.object({
@@ -47,7 +49,15 @@ export type Call = RingRequest & {
   rang_at: string;
 };
 
-let call: Call | null = null;
+/** Only used when Supabase isn't configured — a bare local checkout. */
+let memory: Call | null = null;
+
+const CallSchema: z.ZodType<Call> = RingSchema.extend({
+  id: z.string(),
+  state: z.enum(["ringing", "live", "done", "failed"]),
+  transcript: z.array(TurnSchema),
+  rang_at: z.string(),
+});
 
 /** Reads like a sentence on screen; zod's raw issue JSON does not. */
 function parse<T>(schema: z.ZodType<T>, input: unknown, what: string): T {
@@ -65,34 +75,43 @@ export function parsePatch(input: unknown): Patch {
   return parse(PatchSchema, input, "update");
 }
 
+async function write(call: Call): Promise<Call> {
+  if (haveSupabase()) await putCall(call);
+  else memory = call;
+  return call;
+}
+
 /** Ring the phone. A new call replaces whatever was on the line. */
-export function ring(request: RingRequest): Call {
-  call = {
+export async function ring(request: RingRequest): Promise<Call> {
+  return write({
     ...request,
     id: crypto.randomUUID(),
     state: "ringing",
     transcript: [],
     rang_at: new Date().toISOString(),
-  };
-  return call;
+  });
 }
 
-export function current(): Call | null {
-  return call;
+export async function current(): Promise<Call | null> {
+  if (!haveSupabase()) return memory;
+  // Validated on read: a row written before a shape change must read as an
+  // empty line, not crash the poll that the ringing depends on.
+  const parsed = CallSchema.safeParse(await getCall());
+  return parsed.success ? parsed.data : null;
 }
 
 /** Null when the id is stale — a later call already took the line. */
-export function update(patch: Patch): Call | null {
+export async function update(patch: Patch): Promise<Call | null> {
+  const call = await current();
   if (!call || call.id !== patch.id) return null;
-  call = {
+  return write({
     ...call,
     state: patch.state ?? call.state,
     transcript: patch.transcript ?? call.transcript,
-  };
-  return call;
+  });
 }
 
 /** Test seam. Module state outlives a test file otherwise. */
 export function hangUpEverything(): void {
-  call = null;
+  memory = null;
 }

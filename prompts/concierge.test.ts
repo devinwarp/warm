@@ -10,7 +10,7 @@ import { describe, expect, it } from "vitest";
 const prompt = readFileSync(new URL("./concierge-prompt.md", import.meta.url), "utf8");
 const canvas = readFileSync(new URL("../app/canvas.tsx", import.meta.url), "utf8");
 const booker = readFileSync(new URL("./booker-prompt.md", import.meta.url), "utf8");
-const booking = readFileSync(new URL("../lib/booking.ts", import.meta.url), "utf8");
+const phone = readFileSync(new URL("../app/phone/phone.tsx", import.meta.url), "utf8");
 
 const TOOLS = [
   "find_business",
@@ -21,7 +21,7 @@ const TOOLS = [
   "book_table",
 ];
 
-/** The dynamic variables lib/booking.ts injects into the Booker agent. */
+/** The dynamic variables /phone injects when it answers the Booker. */
 const BOOKER_VARS = ["restaurant_name", "party_size", "when", "customer_name", "customer_phone"];
 
 describe("concierge prompt", () => {
@@ -37,12 +37,12 @@ describe("concierge prompt", () => {
 });
 
 describe("booker prompt", () => {
-  it.each(BOOKER_VARS)("uses {{%s}}, and lib/booking.ts injects it", (name) => {
+  it.each(BOOKER_VARS)("uses {{%s}}, and /phone injects it", (name) => {
     expect(booker).toContain(`{{${name}}}`);
-    expect(booking).toContain(`${name}:`);
+    expect(phone).toContain(`${name}:`);
   });
 
-  it("uses no placeholder lib/booking.ts does not inject", () => {
+  it("uses no placeholder /phone does not inject", () => {
     const used = [...booker.matchAll(/\{\{([a-z_]+)\}\}/g)].map((m) => m[1]);
     expect([...new Set(used)].sort()).toEqual([...BOOKER_VARS].sort());
   });

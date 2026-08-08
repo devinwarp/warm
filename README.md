@@ -70,7 +70,7 @@ and the agent decides what happens next, so the voice stays ahead of the screen.
 middle. Open it on a second screen, press **Take the desk**, and it waits.
 
 ```
-  book_table ──▶ POST /api/ring ──▶ in-memory line ──▶ /phone polls ──▶ rings
+  book_table ──▶ POST /api/ring ──▶ the line (Supabase) ──▶ /phone polls ──▶ rings
                                                             │
                                        you answer ──────────┴──▶ Booker agent
                                        (WebRTC, booking pre-loaded as
@@ -82,18 +82,21 @@ middle. Open it on a second screen, press **Take the desk**, and it waits.
 You play the restaurant: the Booker asks you for the table, and the caller
 watches the transcript of your conversation appear on the canvas at `/`.
 
-`/api/book` — the real Twilio leg, allowlisted in `lib/booking.ts` — is still
-there for when there's a number to dial. Nothing on the `/phone` path reaches
-the PSTN, which is why it has no allowlist.
+Every booking call goes here — there is no Twilio number and no PSTN leg, so
+there is nothing to allowlist and nothing that can dial a stranger.
 
-It needs `ELEVENLABS_BOOKER_AGENT_ID` and nothing else — no Twilio number, no
-`DEMO_BOOKING_NUMBERS`.
+It needs `ELEVENLABS_BOOKER_AGENT_ID` and nothing else. `ELEVENLABS_AGENT_PHONE_NUMBER_ID`
+and `DEMO_BOOKING_NUMBERS` are unused now and can go.
 
-On the Twilio path, the number the Booker dials is a matter of dashboard config,
-not code: point an allowlisted number at the Dial receptionist agent — the same
-agent that serves `/console`, primed with the demo restaurant's Fact Sheet — and
-our booking bot books a table with our own receptionist. That routing is why
-`/console` survived the pivot, and it is why there is no third agent.
+The line is a single row in Supabase (`supabase/migrations/0004_calls.sql`).
+It has to be shared state: the ring and the answer are separate requests, and
+on Vercel they are not guaranteed to reach the same instance. Without Supabase
+configured it falls back to memory, which is fine for one local process.
+
+Bot-to-bot — the Booker dialling an allowlisted number pointed at the Dial
+receptionist, so our booking bot books a table with our own receptionist —
+needed a real phone number between the two agents. That leg is deleted. A human
+answers instead, and `/console` stays as the receptionist demo in its own right.
 
 Design doc: [`docs/superpowers/specs/2026-08-08-voice-canvas-design.md`](docs/superpowers/specs/2026-08-08-voice-canvas-design.md).
 
@@ -141,8 +144,8 @@ An agent that invents a price in front of a customer is worse than no agent. So:
 
 ## Stack
 
-Next.js 16 on Vercel · React 19 · TypeScript strict · Supabase Postgres (three
-tables: fact sheets, places cache, demo status) · OpenRouter for every model call
+Next.js 16 on Vercel · React 19 · TypeScript strict · Supabase Postgres (four
+tables: fact sheets, places cache, demo status, the phone line) · OpenRouter for every model call
 (any model; default `google/gemini-3.1-flash-lite`) · ElevenLabs Agents via
 `@elevenlabs/react` · Context.dev · Apify Google Maps · Nominatim
 
@@ -166,7 +169,7 @@ Every variable, where to get it, and whether you can skip it:
 | `OPENROUTER_API_KEY` | yes | [openrouter.ai/keys](https://openrouter.ai/keys) |
 | `NEXT_PUBLIC_SUPABASE_URL` | yes | Supabase project → Settings → API |
 | `SUPABASE_SERVICE_ROLE_KEY` | yes | Same page. Server-only; never expose it to the browser. |
-| `ELEVENLABS_API_KEY` | yes | ElevenLabs → Profile. Used by `setup-agents` and the Twilio leg. |
+| `ELEVENLABS_API_KEY` | yes | ElevenLabs → Profile. Used by `setup-agents`. |
 | `APIFY_TOKEN` | for the canvas | apify.com → Settings → API token. Costs money, so `setup-agents` won't do it for you. |
 | `NEXT_PUBLIC_ELEVENLABS_CONCIERGE_AGENT_ID` | for the canvas | Printed by `setup-agents` below. |
 | `ELEVENLABS_BOOKER_AGENT_ID` | for booking | Printed by `setup-agents` below. |
@@ -174,16 +177,20 @@ Every variable, where to get it, and whether you can skip it:
 | `OPENROUTER_MODEL` | no | Any model slug. Default `google/gemini-3.1-flash-lite`. |
 | `CRAWL_MAX_PAGES` / `CRAWL_MAX_DEPTH` | no | Crawl level. Defaults 8 pages, depth 1. Also per-request in the POST body. |
 | `EVAL_MODEL` | no | `npm run eval` only. Defaults to `OPENROUTER_MODEL`. |
-| `ELEVENLABS_AGENT_PHONE_NUMBER_ID` / `DEMO_BOOKING_NUMBERS` | no | Only for the real Twilio leg — see below. The `/phone` demo needs neither. |
+| `ELEVENLABS_AGENT_PHONE_NUMBER_ID` / `DEMO_BOOKING_NUMBERS` | unused | The Twilio leg is gone. Delete these two lines from your `.env.local`. |
 
-Database — three tables. `SUPABASE_DB_URL` is for this migration only; nothing at
+Database — four tables. `SUPABASE_DB_URL` is for this migration only; nothing at
 runtime reads it. Or paste each file into the Supabase SQL editor.
 
 ```bash
 psql "$SUPABASE_DB_URL" -f supabase/migrations/0001_factsheets.sql   # fact sheet cache
 psql "$SUPABASE_DB_URL" -f supabase/migrations/0002_places.sql       # places cache
 psql "$SUPABASE_DB_URL" -f supabase/migrations/0003_demo_status.sql  # demo status line
+psql "$SUPABASE_DB_URL" -f supabase/migrations/0004_calls.sql        # the phone line
 ```
+
+Without `calls`, `/api/ring` returns 502 rather than accepting a call nobody
+will ever hear.
 
 Agents — creates the Concierge and Booker in ElevenLabs from the committed
 prompts, and prints the two agent ids to paste back into `.env.local`. It is
@@ -193,14 +200,12 @@ idempotent, so it is also how you push a prompt edit:
 node --env-file=.env.local scripts/setup-agents.mts
 ```
 
-Two things it deliberately does not do, because they cost money:
+One thing it deliberately does not do, because it costs money:
 
 - **`APIFY_TOKEN`** — apify.com → Settings → API token.
-- **The phone leg** — buy a Twilio number, import it under ElevenLabs → Phone
-  numbers, attach the Booker agent, then set `ELEVENLABS_AGENT_PHONE_NUMBER_ID`
-  and put the number you want it allowed to dial in `DEMO_BOOKING_NUMBERS`.
-  **Not needed to book a table** — the `/phone` path is the default and reaches
-  no phone network at all.
+
+No phone number is needed at all. Every booking call rings `/phone` in the
+browser; nothing reaches a phone network.
 
 ### Trying it
 
@@ -246,18 +251,16 @@ app/api/liveread/  the other live tier — the Google listing, rating + open now
 app/api/places/    Apify Google Maps — both canvas flows
 app/api/geocode/   Nominatim — area confirmation before the slow scrape
 app/api/ring/      the demo phone line: ring, poll, answer, transcript
-app/api/book/      the real Twilio leg, allowlist-guarded
 app/api/demo-status/  stage control: flip a fixture site's status line
 
 lib/factsheet.ts   the contract — zod schema + variable flattening
 lib/canvas.ts      card model + reducer
 lib/places.ts      Apify client
 lib/liveread.ts    Google listing -> rating, open/closed, highlights
-lib/ring.ts        the one in-memory phone line
-lib/booking.ts     the allowlist and the outbound call
+lib/ring.ts        the phone line — one call, in Supabase
 lib/geocode.ts     Nominatim, never throws
 lib/demo.ts        the fixture sites and their presets
-lib/supabase.ts    fact sheet + places + demo status
+lib/supabase.ts    fact sheet + places + demo status + the line
 
 prompts/           Concierge, Booker, and the Dial receptionist prompts
 scripts/           agent provisioning, cache pre-warm, e2e smoke
@@ -269,15 +272,16 @@ docs/adr/          decisions that changed the build
 docs/superpowers/  spec and implementation plan for the canvas
 ```
 
-## Safety: the booking allowlist
+## Safety: nothing dials
 
-`/api/book` will only dial numbers listed in `DEMO_BOOKING_NUMBERS`. An unset or
-empty allowlist means **nothing may be dialled** — that is deliberate, not a bug.
+The booking arguments come from a language model parsing speech from whoever is
+holding the microphone on a public URL. An endpoint that turns those into a
+phone call is a robodialer with extra steps.
 
-The arguments reaching that endpoint come from a language model parsing speech
-from whoever is holding the microphone on a public URL. Without the allowlist
-this is a robodialer, so it is validated server-side before any outbound
-request, and `lib/booking.test.ts` covers the off-list and unset-list cases.
+So there isn't one. `/api/ring` writes a row; `/phone` reads it. No number is
+ever dialled — the outbound Twilio leg and its `DEMO_BOOKING_NUMBERS` allowlist
+were deleted rather than left switched off. The payload is still validated
+server-side in `lib/ring.ts`, because it becomes what the Booker says out loud.
 
 ## What we deliberately didn't build
 
