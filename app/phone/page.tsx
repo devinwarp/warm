@@ -1,6 +1,10 @@
 import type { Metadata } from "next";
 import { Phone } from "./phone";
 
+// Read the agent id per request, not at build. Otherwise adding the env var on
+// Vercel does nothing until someone remembers to redeploy.
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "Front desk — Dial",
   description: "The restaurant's end of the line.",

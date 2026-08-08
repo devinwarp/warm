@@ -12,6 +12,8 @@ const place: Place = {
   categories: ["Lebanese restaurant"],
   lat: 25.069,
   lng: 55.141,
+  google_url: "https://maps.google.com/?cid=1",
+  review_tags: ["hummus"],
 };
 
 const candidates: Card = { id: "a", kind: "candidates", places: [place], chosen: null };
