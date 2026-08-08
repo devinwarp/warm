@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { lookupLive } from "@/lib/lookup";
 
 /**
  * POST /api/lookup  { question, source_url }  ->  { answer, source_url, fetched_at }
@@ -28,7 +29,6 @@ export async function POST(request: Request) {
   const signal = AbortSignal.timeout(TIMEOUT_MS);
 
   try {
-    // TODO(Person 2): live Context.dev query scoped to source_url's domain.
     const answer = await lookupLive(body.question, body.source_url, signal);
 
     return NextResponse.json({
@@ -46,6 +46,3 @@ export async function POST(request: Request) {
   }
 }
 
-async function lookupLive(_question: string, _sourceUrl: string, _signal: AbortSignal): Promise<string> {
-  throw new Error("not implemented — Person 2, T+120");
-}

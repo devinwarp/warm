@@ -3,14 +3,18 @@ import { crawlAndExtract } from "@/lib/crawl";
 import { cacheFactSheet, getCachedFactSheet } from "@/lib/supabase";
 
 /**
- * POST /api/crawl  { url }  ->  FactSheet
+ * POST /api/crawl  { url, maxPages?, maxDepth? }  ->  FactSheet
  *
  * Owner: Person 2 (Data).
- * Frontend and Voice build against this shape from T+20 — the body below is
- * the only part still missing.
+ * maxPages/maxDepth are an operator knob for the crawl level; both optional,
+ * clamped in lib/crawl.ts, env-defaulted (CRAWL_MAX_PAGES / CRAWL_MAX_DEPTH).
  */
 export async function POST(request: Request) {
-  const body = (await request.json().catch(() => null)) as { url?: unknown } | null;
+  const body = (await request.json().catch(() => null)) as {
+    url?: unknown;
+    maxPages?: unknown;
+    maxDepth?: unknown;
+  } | null;
 
   if (typeof body?.url !== "string") {
     return NextResponse.json({ error: "url is required" }, { status: 400 });
@@ -29,7 +33,10 @@ export async function POST(request: Request) {
 
   let sheet;
   try {
-    sheet = await crawlAndExtract(url);
+    sheet = await crawlAndExtract(url, {
+      maxPages: typeof body.maxPages === "number" ? body.maxPages : undefined,
+      maxDepth: typeof body.maxDepth === "number" ? body.maxDepth : undefined,
+    });
   } catch (error) {
     // The operator pasted the URL and is watching — say what broke.
     const message = error instanceof Error ? error.message : "extraction failed";
