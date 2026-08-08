@@ -8,7 +8,9 @@
     "start": "next start",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "eval": "node evals/run.mts"
+    "eval": "node evals/run.mts",
+    "smoke": "node scripts/smoke.mjs",
+    "prewarm": "node scripts/prewarm.mts"
   },
   "dependencies": {
     "@elevenlabs/react": "^1.12.0",
@@ -23,6 +25,7 @@
     "@types/node": "^26.2.0",
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.4",
+    "playwright": "^1.62.1",
     "tailwindcss": "^4.3.3",
     "typescript": "^7.0.2",
     "vitest": "^4.1.10"
